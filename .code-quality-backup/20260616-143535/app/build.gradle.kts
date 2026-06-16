@@ -1,24 +1,14 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
-    alias(libs.plugins.ktlint)
-    alias(libs.plugins.detekt)
 }
 
 android {
-    lint {
-        abortOnError = false
-        warningsAsErrors = false
-        checkDependencies = true
-        checkReleaseBuilds = true
-        lintConfig = file("$rootDir/lint.xml")
-        htmlReport = true
-        sarifReport = true
-        textReport = true
-    }
     namespace = "com.hacybeyker.finflow"
     compileSdk {
-        version = release(37)
+        version = release(36) {
+            minorApiLevel = 1
+        }
     }
 
     defaultConfig {
@@ -63,32 +53,4 @@ dependencies {
     androidTestImplementation(libs.androidx.junit)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
     debugImplementation(libs.androidx.compose.ui.tooling)
-}
-
-detekt {
-    buildUponDefaultConfig = true
-    parallel = true
-    config.setFrom(files("$rootDir/config/detekt/detekt.yml"))
-    basePath = rootDir
-}
-
-ktlint {
-    android.set(true)
-    ignoreFailures.set(false)
-}
-
-tasks.register("codeQuality") {
-    group = "verification"
-    description = "Ejecuta Android Lint + ktlint + detekt en un solo comando."
-    dependsOn("ktlintCheck", "detekt", "lint")
-}
-
-listOf("ktlintCheck", "detekt", "lint").forEach { check ->
-    tasks.named(check) { mustRunAfter("ktlintFormat") }
-}
-
-tasks.register("formatAndAnalyze") {
-    group = "verification"
-    description = "Formatea el codigo (ktlintFormat) y luego verifica todo (ktlintCheck + detekt + lint)."
-    dependsOn("ktlintFormat", "codeQuality")
 }
