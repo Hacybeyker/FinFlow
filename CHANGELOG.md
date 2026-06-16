@@ -1,22 +1,22 @@
 # Changelog
 
-Todos los cambios notables de **FinFlow** se documentan en este archivo.
+All notable changes to **FinFlow** are documented in this file.
 
-El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/)
-y el proyecto sigue [Versionado Semántico](https://semver.org/lang/es/).
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
+and this project adheres to [Semantic Versioning](https://semver.org/).
 
-> **Tipos de cambio:** `Added` (feature), `Fixed` (fix), `Changed` / `Enhancement` (mejora),
+> **Change types:** `Added` (feature), `Fixed` (fix), `Changed` / `Enhancement` (improvement),
 > `Deprecated`, `Removed`, `Security`.
 
 ## [1.0.0]
 
 ### Added
-- Licencia **MIT** (`LICENSE`) y referencia a ella en el `README.md`.
-- Documentación del proyecto: `README.md`, `CHANGELOG.md` y `AGENTS.md`.
-- `AGENTS.md` reenfocado a estándares de implementación: Clean Architecture, SOLID, patrón MVI,
-    testing unitario y screenshot testing, eliminando el flujo de construcción por fases.
-- Tareas Gradle agregadas `codeQuality` y `formatAndAnalyze` para verificación de código.
-- Configuración inicial del proyecto: Gradle con Version Catalog (`libs.versions.toml`),
-  `.editorconfig` y herramientas de calidad de código (ktlint, detekt, Android Lint).
-- Configuración de `compileSdk 37`, `targetSdk 36`, `minSdk 26`.
-- Estructura base del proyecto Android (Kotlin + Jetpack Compose, Material 3).
+- **MIT** license (`LICENSE`) and a reference to it in the `README.md`.
+- Project documentation: `README.md`, `CHANGELOG.md` and `AGENTS.md`.
+- `AGENTS.md` refocused on implementation standards: Clean Architecture, SOLID, the MVI pattern,
+    unit testing and screenshot testing, removing the phased build workflow.
+- Aggregate Gradle tasks `codeQuality` and `formatAndAnalyze` for code verification.
+- Initial project setup: Gradle with Version Catalog (`libs.versions.toml`),
+  `.editorconfig` and code quality tools (ktlint, detekt, Android Lint).
+- Configuration of `compileSdk 37`, `targetSdk 36`, `minSdk 26`.
+- Base structure of the Android project (Kotlin + Jetpack Compose, Material 3).

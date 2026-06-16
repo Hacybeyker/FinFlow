@@ -1,176 +1,86 @@
-# FinFlow
+<div align="center">
 
-> Gestor de finanzas personales **offline-first**, cifrado y con widget de pantalla de inicio.
+# 💸 FinFlow
 
-FinFlow es una aplicación Android para controlar **ingresos y gastos** que funciona **100% sin conexión**. El usuario registra movimientos por categorías, consulta su balance y tendencias en gráficos dibujados a mano con Canvas, y dispone de un **widget** en la pantalla de inicio con el resumen del mes. La base de datos es la **única fuente de verdad** (no hay backend) y, por tratarse de datos financieros sensibles, está **cifrada en reposo** y protegida con **biometría**.
+### Your finances, in your pocket. No cloud, no accounts, no excuses.
 
----
+**Offline-first personal finance manager, encrypted at rest and with a home-screen widget.**
 
-## ¿Por qué FinFlow y para qué sirve?
+![Kotlin](https://img.shields.io/badge/Kotlin-7F52FF?style=flat&logo=kotlin&logoColor=white)
+![Jetpack Compose](https://img.shields.io/badge/Jetpack%20Compose-4285F4?style=flat&logo=jetpackcompose&logoColor=white)
+![Material 3](https://img.shields.io/badge/Material%203-757575?style=flat&logo=materialdesign&logoColor=white)
+![Min SDK 26](https://img.shields.io/badge/minSdk-26-3DDC84?style=flat&logo=android&logoColor=white)
+![Offline-First](https://img.shields.io/badge/Offline--First-✓-success?style=flat)
+![Encrypted](https://img.shields.io/badge/SQLCipher-Encrypted-critical?style=flat&logo=securitytrustcorp&logoColor=white)
+![License MIT](https://img.shields.io/badge/License-MIT-yellow?style=flat)
 
-La mayoría de gestores de finanzas obligan a crear una cuenta, suben tus datos a la nube y dependen de internet para algo tan privado como cuánto gastas. FinFlow resuelve eso desde el lado contrario:
-
-- **Privacidad real:** tus finanzas nunca salen del dispositivo. La fuente de verdad es una base de datos local cifrada con SQLCipher; la passphrase vive en el Android Keystore.
-- **Funciona siempre:** al ser offline-first, no hay pantallas de carga ni errores de red. La UI reacciona al instante a los cambios de datos gracias a Room + Flow.
-- **Visión clara de tu dinero:** balance del mes, gasto por categoría (gráfico de dona) y evolución mes a mes (gráfico de barras), todo dibujado con el Canvas de Compose para mantener el APK ligero.
-- **Presente fuera de la app:** un widget con Glance muestra el resumen sin abrir la aplicación, y los recordatorios con WorkManager ayudan a no olvidar registrar gastos.
-
-En resumen: **sirve para llevar el control de tus finanzas personales de forma privada, rápida y sin depender de internet ni de ningún servidor.**
-
----
-
-## Tecnologías
-
-### Lenguaje y UI
-- **Kotlin** + **Jetpack Compose** (Material 3 con dynamic color)
-- **Navigation 3**
-- **Canvas de Compose** para los gráficos (sin librerías de charting)
-
-### Arquitectura
-- **Clean Architecture ligera** (capas `domain` / `data` / `ui`)
-- **MVI**: un estado inmutable por pantalla (unidirectional data flow)
-- **Coroutines + Flow / StateFlow** para el estado reactivo
-- **Hilt** para inyección de dependencias
-
-### Datos y seguridad
-- **Room** (+ KSP) como única fuente de verdad, con DAOs que devuelven `Flow`
-- **SQLCipher** (`net.zetetic:android-database-sqlcipher`) + `androidx.sqlite` — cifrado de la BD
-- **Android Keystore** / `androidx.security:security-crypto` — guardado seguro de la passphrase
-- **androidx.biometric** — desbloqueo con huella/rostro
-- **DataStore** — preferencias (moneda, tema, toggle de biometría)
-
-### Sistema y background
-- **Jetpack Glance** (`glance-appwidget`) — widget de pantalla de inicio
-- **WorkManager** (`work-runtime-ktx`) — recordatorios y tareas diferidas
-
-### Testing y calidad
-- **JUnit**, **MockK**, **Turbine**, **kotlinx-coroutines-test**
-- **Roborazzi** (opcional, screenshot test del gráfico)
-- **ktlint** + **detekt** + **Android Lint** para calidad de código
+</div>
 
 ---
 
-## Requisitos
+FinFlow tracks **income and expenses while working 100% offline**. You log transactions by category, see your balance and trends in charts drawn with Canvas, and check the month's summary from a **widget** without opening the app. The local database is the **single source of truth** —there's no backend— and, since it's about money, it's **encrypted at rest** and protected with **biometrics**.
 
-- **JDK 11** (el proyecto compila con `sourceCompatibility`/`targetCompatibility` = 11)
-- **Android Studio** (versión compatible con AGP `9.2.1`)
-- **Android SDK**: `compileSdk 37`, `targetSdk 36`, `minSdk 26`
-- No se requiere editar versiones a mano: todas viven en el Version Catalog (`gradle/libs.versions.toml`).
+## ✨ What sets it apart
 
----
+| | |
+|---|---|
+| 🔒 **Real privacy** | Your finances **never leave the device**. Local DB encrypted with SQLCipher; the passphrase lives in the Android Keystore. |
+| ⚡ **Always works** | _Offline-first_: zero loading screens, zero network errors. The UI reacts instantly thanks to Room + Flow. |
+| 📊 **Clear picture** | Monthly balance, spending by category (donut) and month-over-month trend (bars), all in **Canvas** for a lightweight APK. |
+| 🏠 **Present beyond the app** | A **Glance** widget and **WorkManager** reminders so you never forget to log an expense. |
 
-## Puesta en marcha
+> **In one sentence:** keep control of your money in a way that's **private, fast, and free of any internet or server dependency.**
 
-```bash
-# Clonar el repositorio
-git clone <url-del-repo> FinFlow
-cd FinFlow
+## 🛠️ Stack
 
-# (Opcional) Configurar la ruta del SDK en local.properties
-# sdk.dir=/ruta/al/Android/Sdk
-```
+| Layer | Technologies |
+|-------|--------------|
+| **Language & UI** | Kotlin · Jetpack Compose (Material 3 + dynamic color) · Navigation 3 · Canvas for charts (no charting libs) |
+| **Architecture** | Lightweight Clean Architecture (`domain` / `data` / `ui`) · **MVI** (one immutable state per screen) · Coroutines + Flow / StateFlow · Hilt |
+| **Data & security** | Room (+ KSP) as the SSOT with `Flow` DAOs · SQLCipher · Android Keystore / `security-crypto` · `androidx.biometric` · DataStore |
+| **System** | Jetpack Glance (widget) · WorkManager (reminders and deferred tasks) |
+| **Quality & tests** | JUnit · MockK · Turbine · coroutines-test · Roborazzi · ktlint · detekt · Android Lint |
 
-> En Windows usa `gradlew.bat` en lugar de `./gradlew`.
+## ⚡ Commands
 
----
+> **Requirements:** JDK 11 · Android Studio (AGP `9.2.1`) · `compileSdk 37` · `targetSdk 36` · `minSdk 26`. All versions live in the Version Catalog (`gradle/libs.versions.toml`).
 
-## Comandos
+| Action | Command |
+|--------|---------|
+| Build (debug) | `./gradlew assembleDebug` |
+| Install on device | `./gradlew installDebug` |
+| Release build | `./gradlew assembleRelease` |
+| Format (ktlint) | `./gradlew ktlintFormat` |
+| Quality (lint + ktlint + detekt) | `./gradlew codeQuality` |
+| **Format + verify everything** ⭐ | `./gradlew formatAndAnalyze` |
+| Unit tests (JVM) | `./gradlew test` |
+| Instrumented tests | `./gradlew connectedAndroidTest` |
 
-### Compilación y ejecución
+> 💡 Before every commit: `./gradlew formatAndAnalyze`.
 
-```bash
-# Compilar el proyecto (debug)
-./gradlew assembleDebug
-
-# Instalar en un dispositivo/emulador conectado
-./gradlew installDebug
-
-# Compilación de release
-./gradlew assembleRelease
-
-# Limpiar artefactos de build
-./gradlew clean
-```
-
-### Formateo de código
-
-```bash
-# Formatear automáticamente el código Kotlin con ktlint
-./gradlew ktlintFormat
-```
-
-### Lint, formateo y verificación de sintaxis
-
-El proyecto incluye **tareas agregadas** definidas en `app/build.gradle.kts`:
-
-```bash
-# Verificar estilo con ktlint (sin modificar archivos)
-./gradlew ktlintCheck
-
-# Análisis estático con detekt
-./gradlew detekt
-
-# Android Lint
-./gradlew lint
-
-# Las tres anteriores en un solo comando (lint + ktlint + detekt)
-./gradlew codeQuality
-
-# Formatea primero (ktlintFormat) y luego ejecuta toda la verificación
-./gradlew formatAndAnalyze
-```
-
-> Recomendado antes de cada commit: `./gradlew formatAndAnalyze`.
-
-### Tests
-
-```bash
-# Unit tests (JVM)
-./gradlew test
-
-# Tests instrumentados (requiere dispositivo/emulador)
-./gradlew connectedAndroidTest
-```
-
-### Verificación completa
-
-```bash
-# Build + tests + chequeos de calidad configurados
-./gradlew check
-```
-
----
-
-## Estructura del proyecto
+## 🗂️ Structure
 
 ```
 FinFlow/
-├── app/
-│   └── src/main/java/com/hacybeyker/finflow/
-│       ├── domain/   # Entidades, casos de uso e interfaces de repositorio (Kotlin puro)
-│       ├── data/     # Room, DAOs, mappers e implementación de repositorios
-│       └── ui/       # Pantallas Compose, ViewModels (MVI) y tema
-├── config/detekt/    # Configuración de detekt
-├── gradle/
-│   └── libs.versions.toml   # Version Catalog (única fuente de verdad de dependencias)
-├── lint.xml          # Reglas de Android Lint
-├── .editorconfig     # Estilo de código (lo lee ktlint)
-├── CHANGELOG.md      # Historial de versiones
-└── AGENTS.md         # Guía para asistentes de IA
+├── app/src/main/java/com/hacybeyker/finflow/
+│   ├── domain/   # Entities, use cases and repository interfaces (pure Kotlin)
+│   ├── data/     # Room, DAOs, mappers and repository implementations
+│   └── ui/       # Compose screens, ViewModels (MVI) and theme
+├── config/detekt/             # detekt configuration
+├── gradle/libs.versions.toml  # Version Catalog (dependencies SSOT)
+├── lint.xml · .editorconfig   # Lint rules and code style
+├── CHANGELOG.md               # Version history
+└── AGENTS.md                  # Standards and guide for AI assistants
 ```
 
----
+## 🤝 Contributing · 🤖 For AI assistants
 
-## Convenciones de código
+The **architecture, SOLID standards, MVI patterns and implementation rules** live in **[AGENTS.md](AGENTS.md)** — read it before touching any code (human or AI).
 
-- Estilo `android_studio`, `max_line_length = 120`, indentación de 4 espacios (ver `.editorconfig`).
-- **Sin wildcard imports** ni trailing commas (forzado por ktlint).
-- Funciones `@Composable`/`@Preview` en PascalCase (excepción configurada en ktlint).
+In short: ktlint `android_studio` style, `max_line_length = 120`, 4-space indentation, **no wildcard imports or trailing commas**, dependencies always via the Version Catalog. Keep `formatAndAnalyze` and the tests green, and update the `CHANGELOG.md`.
 
----
+## 📄 License
 
-## Licencia
+Distributed under the **MIT** license — see [LICENSE](LICENSE).
 
-Distribuido bajo la licencia **MIT**. Consulta el archivo [LICENSE](LICENSE) para más detalles.
-
-Copyright © 2026 Carlos Osorio (hacybeyker).
+Copyright © 2026 Carlos Osorio ([hacybeyker](https://github.com/hacybeyker)).

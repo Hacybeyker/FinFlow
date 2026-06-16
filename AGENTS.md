@@ -1,183 +1,182 @@
 # AGENTS.md
 
-Guía para agentes de IA (Claude Code, Gemini en Android Studio, Cursor, Copilot, etc.) que
-contribuyen a **FinFlow**. Sigue el estándar de [agents.md](https://agents.md/).
+Guide for AI agents (Claude Code, Gemini in Android Studio, Cursor, Copilot, etc.) that
+contribute to **FinFlow**. Follows the [agents.md](https://agents.md/) standard.
 
-Este archivo define **los estándares, la arquitectura y las buenas prácticas** con los que se
-implementa cualquier cambio en el repositorio. Para la visión del producto y los comandos de
-usuario, ver [README.md](README.md).
+This file defines **the standards, architecture and best practices** used to implement any change
+in the repository. For the product vision and user-facing commands, see [README.md](README.md).
 
 ---
 
-## Resumen del proyecto
+## Project overview
 
-FinFlow es una app Android de **finanzas personales offline-first**: registro de ingresos/gastos por
-categorías, balance y gráficos, con base de datos **local cifrada** y desbloqueo **biométrico**.
-**No hay backend**: la base de datos Room es la **única fuente de verdad** (SSOT).
+FinFlow is an Android app for **offline-first personal finance**: logging income/expenses by
+category, balance and charts, with a **locally encrypted database** and **biometric** unlock.
+**There's no backend**: the Room database is the **single source of truth** (SSOT).
 
-- **Lenguaje:** Kotlin · **UI:** Jetpack Compose + Material 3 · **DI:** Hilt
-- **Arquitectura:** Clean Architecture + **MVI** (un estado inmutable por pantalla)
-- **Estado reactivo:** Coroutines + Flow / StateFlow
-- **Datos:** Room (+ KSP) sobre SQLCipher · **Preferencias:** DataStore
-- **Seguridad:** Android Keystore + `androidx.biometric`
-- **Sistema:** Glance (widget) + WorkManager (background)
+- **Language:** Kotlin · **UI:** Jetpack Compose + Material 3 · **DI:** Hilt
+- **Architecture:** Clean Architecture + **MVI** (one immutable state per screen)
+- **Reactive state:** Coroutines + Flow / StateFlow
+- **Data:** Room (+ KSP) over SQLCipher · **Preferences:** DataStore
+- **Security:** Android Keystore + `androidx.biometric`
+- **System:** Glance (widget) + WorkManager (background)
 - **package:** `com.hacybeyker.finflow`
 
 ---
 
 ## Clean Architecture
 
-Tres capas con una **regla de dependencias estricta**: las dependencias apuntan **hacia el dominio**.
+Three layers with a **strict dependency rule**: dependencies point **toward the domain**.
 
 ```
 app/src/main/java/com/hacybeyker/finflow/
-├── domain/   # Modelos, casos de uso e interfaces de repositorio. Kotlin PURO (sin Android).
-├── data/     # Room (DB, DAOs, entities), mappers entity↔domain, implementación de repositorios.
-└── ui/       # Pantallas Compose, ViewModels (MVI), theme/. Orquesta casos de uso.
+├── domain/   # Models, use cases and repository interfaces. PURE Kotlin (no Android).
+├── data/     # Room (DB, DAOs, entities), entity↔domain mappers, repository implementations.
+└── ui/       # Compose screens, ViewModels (MVI), theme/. Orchestrates use cases.
 ```
 
-Regla de dependencias: **`ui → domain ← data`**.
+Dependency rule: **`ui → domain ← data`**.
 
-- El **dominio no conoce** Android, Room, Compose ni Hilt; no importa nada de framework.
-- La **UI depende del dominio** (casos de uso e interfaces), **nunca** de `data` directamente.
-- **`data` implementa** las interfaces declaradas en `domain` (inversión de dependencias).
-- Los **mappers** entity↔domain viven en `data`. Un modelo de dominio nunca expone una `@Entity`.
-- Cada capa tiene su **propio modelo**: entity (data) ↔ modelo de dominio ↔ UI state. No se filtran
-  entities a la UI.
-
----
-
-## Principios SOLID (cómo se aplican aquí)
-
-- **S — Responsabilidad única:** un caso de uso = una operación de negocio (`AddTransaction`,
-  `GetBalance`). Los ViewModels orquestan estado de UI; no contienen lógica de persistencia. Los
-  Composables solo pintan estado y emiten intents.
-- **O — Abierto/cerrado:** extiende vía nuevos casos de uso o nuevas implementaciones de interfaz,
-  sin modificar las existentes. Evita `when` gigantes sobre tipos que crecen.
-- **L — Sustitución de Liskov:** los fakes/mocks de los repositorios deben respetar el contrato de la
-  interfaz de dominio para que los tests sean fiables.
-- **I — Segregación de interfaces:** repositorios pequeños y cohesivos
-  (`TransactionRepository`, `CategoryRepository`, `PreferencesRepository`), no un mega-repositorio.
-- **D — Inversión de dependencias:** el dominio define interfaces; `data` las implementa; Hilt las
-  enlaza. La UI depende de abstracciones (casos de uso/interfaces), no de implementaciones.
+- The **domain knows nothing** about Android, Room, Compose or Hilt; it imports no framework code.
+- The **UI depends on the domain** (use cases and interfaces), **never** on `data` directly.
+- **`data` implements** the interfaces declared in `domain` (dependency inversion).
+- The entity↔domain **mappers** live in `data`. A domain model never exposes an `@Entity`.
+- Each layer has its **own model**: entity (data) ↔ domain model ↔ UI state. Entities are never
+  leaked to the UI.
 
 ---
 
-## Patrones y reglas de implementación (obligatorios)
+## SOLID principles (how they apply here)
 
-- **MVI por pantalla:** cada pantalla expone un único `StateFlow<XxxUiState>` **inmutable** desde el
-  ViewModel. Las interacciones entran como **intents** (`sealed interface`), no llamando métodos
-  sueltos del ViewModel de forma ad-hoc. Estados explícitos: `loading / empty / content / error`.
-- **SSOT con Room:** los DAOs devuelven `Flow`. La UI **reacciona** al Flow; no refresca a mano ni
-  mantiene cachés paralelas a la BD.
-- **Lógica de negocio en `domain`:** cálculos (balance, agregados) y validaciones viven en casos de
-  uso o ViewModel, **nunca en Composables**. La validación de formularios va en el ViewModel.
-- **Coroutines:** usa `viewModelScope`; expón estado con `StateFlow`; combina flujos con
-  `combine` / `flatMapLatest`. **Inyecta** el `CoroutineDispatcher` (no hardcodees `Dispatchers.IO`)
-  para poder testear.
-- **Hilt:** módulos en `data` para BD, DAOs y repositorios. Interfaces de dominio enlazadas con
-  `@Binds`. ViewModels con `@HiltViewModel` + `@Inject`.
-- **Migraciones Room versionadas.** **Nunca** `fallbackToDestructiveMigration` en código real.
-- **Seguridad:** la passphrase de SQLCipher se genera y guarda en **Keystore** /
-  EncryptedSharedPreferences; nunca hardcodeada ni en texto plano. No loguear datos sensibles.
-- **Gráficos con Canvas de Compose**, sin librerías de charting (decisión consciente: APK ligero).
-- **Inmutabilidad:** modelos de dominio y UI state como `data class` inmutables; colecciones como
-  `List` de solo lectura. Evita estado mutable compartido.
+- **S — Single responsibility:** one use case = one business operation (`AddTransaction`,
+  `GetBalance`). ViewModels orchestrate UI state; they hold no persistence logic. Composables
+  only render state and emit intents.
+- **O — Open/closed:** extend via new use cases or new interface implementations, without modifying
+  existing ones. Avoid giant `when` statements over types that keep growing.
+- **L — Liskov substitution:** repository fakes/mocks must honor the contract of the domain
+  interface so tests stay reliable.
+- **I — Interface segregation:** small, cohesive repositories
+  (`TransactionRepository`, `CategoryRepository`, `PreferencesRepository`), not a mega-repository.
+- **D — Dependency inversion:** the domain defines interfaces; `data` implements them; Hilt wires
+  them. The UI depends on abstractions (use cases/interfaces), not on implementations.
 
 ---
 
-## Flujo para implementar un feature / fix / enhancement
+## Implementation patterns and rules (mandatory)
 
-1. **Ubica la capa correcta.** ¿Es regla de negocio? → `domain`. ¿Persistencia/mapeo? → `data`.
-   ¿Presentación? → `ui`. Respeta `ui → domain ← data`.
-2. **Modela primero el dominio** (si aplica): modelo + caso de uso + interfaz de repositorio en
-   Kotlin puro, con su unit test.
-3. **Implementa en `data`:** entity/DAO/migración + mapper + implementación de repositorio; enlaza
-   con Hilt.
-4. **Conecta la UI:** define/extiende `UiState` e intents; el ViewModel orquesta los casos de uso y
-   expone `StateFlow`; el Composable consume estado y emite intents.
-5. **Tests:** unit tests de la lógica nueva (caso de uso y/o ViewModel). Screenshot test si hay UI
-   visual relevante (p. ej. el gráfico).
-6. **Verifica:** `./gradlew formatAndAnalyze` y `./gradlew test` en verde.
-7. **Documenta:** añade una entrada en `CHANGELOG.md` bajo `[Unreleased]` con el tipo
-   (`Added` / `Fixed` / `Changed`/`Enhancement` / `Security`).
-
-Mantén el cambio **enfocado y atómico**: un feature/fix por vez, sin tocar de paso código no
-relacionado.
+- **MVI per screen:** each screen exposes a single **immutable** `StateFlow<XxxUiState>` from the
+  ViewModel. Interactions come in as **intents** (`sealed interface`), not by calling loose
+  ViewModel methods ad-hoc. Explicit states: `loading / empty / content / error`.
+- **SSOT with Room:** DAOs return `Flow`. The UI **reacts** to the Flow; it doesn't refresh by hand
+  or keep caches parallel to the DB.
+- **Business logic in `domain`:** calculations (balance, aggregates) and validations live in use
+  cases or the ViewModel, **never in Composables**. Form validation goes in the ViewModel.
+- **Coroutines:** use `viewModelScope`; expose state with `StateFlow`; combine flows with
+  `combine` / `flatMapLatest`. **Inject** the `CoroutineDispatcher` (don't hardcode `Dispatchers.IO`)
+  so it can be tested.
+- **Hilt:** modules in `data` for the DB, DAOs and repositories. Domain interfaces bound with
+  `@Binds`. ViewModels with `@HiltViewModel` + `@Inject`.
+- **Versioned Room migrations.** **Never** `fallbackToDestructiveMigration` in real code.
+- **Security:** the SQLCipher passphrase is generated and stored in the **Keystore** /
+  EncryptedSharedPreferences; never hardcoded or in plain text. Don't log sensitive data.
+- **Charts with Compose Canvas**, no charting libraries (a deliberate decision: lightweight APK).
+- **Immutability:** domain models and UI state as immutable `data class`es; collections as
+  read-only `List`s. Avoid shared mutable state.
 
 ---
 
-## Convenciones de código
+## Workflow to implement a feature / fix / enhancement
 
-- Estilo ktlint `android_studio`, **`max_line_length = 120`**, indentación **4 espacios**,
-  `end_of_line = lf` (ver `.editorconfig`).
-- **Prohibidos los wildcard imports** (`import x.*`) y las **trailing commas**. Lo fuerza ktlint en
-  el build, no solo el editor.
-- Funciones `@Composable`/`@Preview` en **PascalCase** (excepción ya configurada). El resto de
-  funciones en camelCase; clases en PascalCase.
-- Nombres descriptivos y orientados a intención; nada de abreviaturas crípticas.
-- Comenta solo lo **no obvio** (el porqué), no lo evidente.
-- Dependencias **siempre** en el Version Catalog (`gradle/libs.versions.toml`), referenciadas con
-  `libs.*`. Nunca versiones inline en `build.gradle.kts`.
+1. **Locate the right layer.** Is it a business rule? → `domain`. Persistence/mapping? → `data`.
+   Presentation? → `ui`. Respect `ui → domain ← data`.
+2. **Model the domain first** (when applicable): model + use case + repository interface in pure
+   Kotlin, with its unit test.
+3. **Implement in `data`:** entity/DAO/migration + mapper + repository implementation; wire it up
+   with Hilt.
+4. **Connect the UI:** define/extend `UiState` and intents; the ViewModel orchestrates the use cases
+   and exposes `StateFlow`; the Composable consumes state and emits intents.
+5. **Tests:** unit tests for the new logic (use case and/or ViewModel). Screenshot test if there's
+   relevant visual UI (e.g. the chart).
+6. **Verify:** `./gradlew formatAndAnalyze` and `./gradlew test` green.
+7. **Document:** add an entry to `CHANGELOG.md` under `[Unreleased]` with the type
+   (`Added` / `Fixed` / `Changed` / `Enhancement` / `Security`).
+
+Keep the change **focused and atomic**: one feature/fix at a time, without touching unrelated code
+along the way.
+
+---
+
+## Code conventions
+
+- ktlint `android_studio` style, **`max_line_length = 120`**, **4-space** indentation,
+  `end_of_line = lf` (see `.editorconfig`).
+- **Wildcard imports** (`import x.*`) and **trailing commas** are **forbidden**. ktlint enforces this
+  in the build, not just the editor.
+- `@Composable`/`@Preview` functions in **PascalCase** (exception already configured). All other
+  functions in camelCase; classes in PascalCase.
+- Descriptive, intention-revealing names; no cryptic abbreviations.
+- Comment only the **non-obvious** (the why), not the obvious.
+- Dependencies **always** in the Version Catalog (`gradle/libs.versions.toml`), referenced with
+  `libs.*`. Never inline versions in `build.gradle.kts`.
 
 ---
 
 ## Testing
 
-### Unit tests (obligatorios para lógica nueva)
-- **Casos de uso y ViewModels** con **MockK** + **Turbine** (para `Flow`/`StateFlow`) +
-  `kotlinx-coroutines-test` (usa un `TestDispatcher` inyectado).
-- El **dominio se testea sin emulador** (Kotlin puro, repositorios fakeados que respetan el contrato).
-- Patrón **Arrange–Act–Assert**; un comportamiento por test; nombres que describen el caso.
-- Toda nueva lógica de negocio o de ViewModel **debe** ir acompañada de su test.
+### Unit tests (mandatory for new logic)
+- **Use cases and ViewModels** with **MockK** + **Turbine** (for `Flow`/`StateFlow`) +
+  `kotlinx-coroutines-test` (use an injected `TestDispatcher`).
+- The **domain is tested without an emulator** (pure Kotlin, faked repositories that honor the contract).
+- **Arrange–Act–Assert** pattern; one behavior per test; names that describe the case.
+- All new business or ViewModel logic **must** be accompanied by its test.
 
 ### Screenshot testing
-- Componentes visuales clave (en especial los **gráficos con Canvas**) se cubren con **Roborazzi**.
-- Flujo: generar baseline (`recordRoborazziDebug`) y verificar en cada cambio
-  (`verifyRoborazziDebug`). Las imágenes baseline se versionan; cualquier diff visual debe ser
-  intencional y revisado.
-- Usa datos deterministas y fija dimensiones/tema para que el render sea reproducible.
+- Key visual components (especially the **Canvas charts**) are covered with **Roborazzi**.
+- Workflow: generate the baseline (`recordRoborazziDebug`) and verify on every change
+  (`verifyRoborazziDebug`). Baseline images are versioned; any visual diff must be intentional and
+  reviewed.
+- Use deterministic data and pin dimensions/theme so the render is reproducible.
 
-### Verificación previa a cerrar
+### Pre-close verification
 ```bash
 ./gradlew formatAndAnalyze   # ktlintFormat → ktlintCheck + detekt + lint
-./gradlew test               # unit tests JVM
+./gradlew test               # JVM unit tests
 ```
 
 ---
 
-## Comandos
+## Commands
 
-| Acción                       | Comando                          |
+| Action                       | Command                          |
 |------------------------------|----------------------------------|
-| Formatear                    | `./gradlew ktlintFormat`         |
-| Verificar estilo             | `./gradlew ktlintCheck`          |
-| Análisis estático            | `./gradlew detekt`               |
+| Format                       | `./gradlew ktlintFormat`         |
+| Check style                  | `./gradlew ktlintCheck`          |
+| Static analysis              | `./gradlew detekt`               |
 | Android Lint                 | `./gradlew lint`                 |
 | Lint + ktlint + detekt       | `./gradlew codeQuality`          |
-| Formatear + verificar todo   | `./gradlew formatAndAnalyze`     |
+| Format + verify everything   | `./gradlew formatAndAnalyze`     |
 | Unit tests (JVM)             | `./gradlew test`                 |
-| Tests instrumentados         | `./gradlew connectedAndroidTest` |
-| Compilar (debug)             | `./gradlew assembleDebug`        |
+| Instrumented tests           | `./gradlew connectedAndroidTest` |
+| Build (debug)                | `./gradlew assembleDebug`        |
 
-> En Windows: `gradlew.bat`. Config: `compileSdk 37`, `targetSdk 36`, `minSdk 26`, **JDK 11**.
+> On Windows: `gradlew.bat`. Config: `compileSdk 37`, `targetSdk 36`, `minSdk 26`, **JDK 11**.
 
 ---
 
-## Qué hacer y qué NO hacer
+## Do's and don'ts
 
-**Sí:**
-- Respetar Clean Architecture y el flujo `ui → domain ← data`.
-- Aplicar SOLID: responsabilidad única, interfaces pequeñas, dependencias hacia abstracciones.
-- Un único `UiState` inmutable por pantalla con estados explícitos.
-- Acompañar la lógica nueva con unit tests y, si hay UI visual, screenshot test.
-- Centralizar dependencias en el Version Catalog y justificar cada alta.
-- Dejar `formatAndAnalyze` y los tests en verde, y actualizar el `CHANGELOG.md`.
+**Do:**
+- Respect Clean Architecture and the `ui → domain ← data` flow.
+- Apply SOLID: single responsibility, small interfaces, dependencies toward abstractions.
+- A single immutable `UiState` per screen with explicit states.
+- Accompany new logic with unit tests and, if there's visual UI, a screenshot test.
+- Centralize dependencies in the Version Catalog and justify each addition.
+- Keep `formatAndAnalyze` and the tests green, and update the `CHANGELOG.md`.
 
-**No:**
-- No meter lógica de negocio o validación en Composables.
-- No filtrar `@Entity` de Room ni detalles de `data` hacia `ui`.
-- No usar `fallbackToDestructiveMigration`, wildcard imports ni trailing commas.
-- No hardcodear secretos, claves ni passphrases; no loguear datos financieros.
-- No añadir librerías pesadas de charting (los gráficos se hacen con Canvas).
-- No mezclar varios features/fixes en un mismo cambio.
+**Don't:**
+- Don't put business logic or validation in Composables.
+- Don't leak Room `@Entity` types or `data` details into `ui`.
+- Don't use `fallbackToDestructiveMigration`, wildcard imports or trailing commas.
+- Don't hardcode secrets, keys or passphrases; don't log financial data.
+- Don't add heavy charting libraries (charts are drawn with Canvas).
+- Don't mix several features/fixes in a single change.
