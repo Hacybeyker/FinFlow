@@ -10,6 +10,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+- `Money` domain value class in `core/domain`: exact monetary amounts stored as `Long` minor units
+  (no floating point), with `+`/`-`/unary-minus operators, `Comparable`, sign helpers and `ZERO`.
+
 ### Changed
 - Adopted **Vertical Slice Architecture** (feature-first packaging): moved existing code to
   `core/ui/theme/`, `feature/transactions/ui/` and `navigation/`, keeping Clean Architecture's
