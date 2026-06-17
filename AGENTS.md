@@ -16,7 +16,8 @@ category, balance and charts, with a **locally encrypted database** and **biomet
 **There's no backend**: the Room database is the **single source of truth** (SSOT).
 
 - **Language:** Kotlin · **UI:** Jetpack Compose + Material 3 · **DI:** Hilt
-- **Architecture:** Clean Architecture + **MVI** (one immutable state per screen)
+- **Architecture:** **Vertical Slice Architecture** (feature-first packaging) + Clean Architecture
+  dependency rule + **MVI** (one immutable state per screen)
 - **Reactive state:** Coroutines + Flow / StateFlow
 - **Data:** Room (+ KSP) over SQLCipher · **Preferences:** DataStore
 - **Security:** Android Keystore + `androidx.biometric`
@@ -25,18 +26,32 @@ category, balance and charts, with a **locally encrypted database** and **biomet
 
 ---
 
-## Clean Architecture
+## Architecture — Vertical Slice + Clean dependency rule
 
-Three layers with a **strict dependency rule**: dependencies point **toward the domain**.
+Two **orthogonal** concerns, both mandatory:
+
+1. **Packaging = Vertical Slice Architecture (feature-first).** Code is grouped **by feature**, not by
+   technical layer. Everything a feature needs (its three layers) lives together under `feature/<name>/`.
+2. **Dependency rule = Clean Architecture.** Inside every slice, dependencies point **toward the
+   domain**: **`ui → domain ← data`**.
+
+These do not compete: VSA decides *how files are grouped*; Clean decides *who may depend on whom*.
 
 ```
 app/src/main/java/com/hacybeyker/finflow/
-├── domain/   # Models, use cases and repository interfaces. PURE Kotlin (no Android).
-├── data/     # Room (DB, DAOs, entities), entity↔domain mappers, repository implementations.
-└── ui/       # Compose screens, ViewModels (MVI), theme/. Orchestrates use cases.
+├── core/                     # SHARED across features (only what ≥2 features truly need)
+│   ├── domain/               #   cross-cutting domain types (e.g. Money value class)
+│   ├── database/             #   FinFlowDatabase (@Database aggregates all DAOs), Room/SQLCipher, Hilt DB module
+│   └── ui/theme/             #   design tokens (Color, Spacing, Type, Shape, Theme)
+├── feature/
+│   └── <feature>/            # one vertical slice per business capability
+│       ├── domain/           #   models, use cases, repository interfaces. PURE Kotlin (no Android).
+│       ├── data/             #   @Entity + DAO (contributed to core DB), mappers, repository impl, Hilt module
+│       └── ui/               #   Compose screens, ViewModels (MVI), UiState/intents
+└── navigation/               # cross-feature NavHost + nav keys
 ```
 
-Dependency rule: **`ui → domain ← data`**.
+Dependency rule (**per slice**): **`ui → domain ← data`**.
 
 - The **domain knows nothing** about Android, Room, Compose or Hilt; it imports no framework code.
 - The **UI depends on the domain** (use cases and interfaces), **never** on `data` directly.
@@ -44,6 +59,16 @@ Dependency rule: **`ui → domain ← data`**.
 - The entity↔domain **mappers** live in `data`. A domain model never exposes an `@Entity`.
 - Each layer has its **own model**: entity (data) ↔ domain model ↔ UI state. Entities are never
   leaked to the UI.
+
+**VSA rules:**
+- A *feature* is a **business capability** (transactions, charts, security…), never a single widget.
+- **One feature never imports another feature's internals.** Cross-feature collaboration goes through
+  `core/` or the `domain` contracts.
+- **Promote to `core/` only when ≥2 features genuinely need it** (YAGNI). Until then, keep it local to
+  its feature. Cheap duplication beats premature coupling.
+- The Room **`@Database` is inherently cross-feature** (one `.db`, aggregates every DAO, global
+  migrations) → it lives in `core/database/`; each feature **contributes** its `@Entity` + DAO.
+- Single Gradle module with feature packages (not multi-module) — a deliberate, revisitable choice.
 
 ---
 
@@ -75,8 +100,9 @@ Dependency rule: **`ui → domain ← data`**.
 - **Coroutines:** use `viewModelScope`; expose state with `StateFlow`; combine flows with
   `combine` / `flatMapLatest`. **Inject** the `CoroutineDispatcher` (don't hardcode `Dispatchers.IO`)
   so it can be tested.
-- **Hilt:** modules in `data` for the DB, DAOs and repositories. Domain interfaces bound with
-  `@Binds`. ViewModels with `@HiltViewModel` + `@Inject`.
+- **Hilt:** the DB and shared DAOs are provided from `core/database`; each feature's `data` provides
+  its repositories and binds its domain interfaces with `@Binds`. ViewModels with `@HiltViewModel` +
+  `@Inject`. A feature's Hilt module lives inside that feature.
 - **Versioned Room migrations.** **Never** `fallbackToDestructiveMigration` in real code.
 - **Security:** the SQLCipher passphrase is generated and stored in the **Keystore** /
   EncryptedSharedPreferences; never hardcoded or in plain text. Don't log sensitive data.
@@ -107,26 +133,31 @@ any screen or component. Non-negotiable rules:
 
 ---
 
-## Workflow to implement a feature / fix / enhancement
+## Workflow to implement a feature / fix / enhancement (Vertical Slice)
 
-1. **Locate the right layer.** Is it a business rule? → `domain`. Persistence/mapping? → `data`.
-   Presentation? → `ui`. Respect `ui → domain ← data`.
-2. **Model the domain first** (when applicable): model + use case + repository interface in pure
-   Kotlin, with its unit test.
-3. **Implement in `data`:** entity/DAO/migration + mapper + repository implementation; wire it up
-   with Hilt.
-4. **Connect the UI:** define/extend `UiState` and intents; the ViewModel orchestrates the use cases
-   and exposes `StateFlow`; the Composable consumes state and emits intents.
+**Every change is a vertical slice**: pick the **feature** first, then build only the classes that
+feature needs, top-down through its own layers — never "all the domain of the app, then all the data".
+
+1. **Locate the feature, not the layer.** New capability → new `feature/<name>/`. Change to an
+   existing one → its folder. Only genuinely shared pieces touch `core/`.
+2. **Model the slice's domain first:** model + use case + repository interface in pure Kotlin under
+   `feature/<name>/domain`, each with its unit test. Only what *this* feature needs.
+3. **Implement the slice's `data`:** `@Entity` + DAO (contributed to `core` DB) + mapper + repository
+   implementation + the feature's Hilt module.
+4. **Connect the slice's UI:** define/extend `UiState` and intents; the ViewModel orchestrates the use
+   cases and exposes `StateFlow`; the Composable consumes state and emits intents.
 5. **Tests:** unit tests for the new logic (use case and/or ViewModel). Screenshot test if there's
    relevant visual UI (e.g. the chart).
 6. **Verify:** `./gradlew formatAndAnalyze` and `./gradlew test` green.
-7. **Document & version:** add an entry to `CHANGELOG.md` under `[Unreleased]` with the type
-   (`Added` / `Fixed` / `Changed` / `Enhancement` / `Security`). When the step/phase is done, cut a
-   version following the **Versioning** section (bump `versionName`/`versionCode`, date the
-   changelog section, tag).
+7. **Document & version:** add a `CHANGELOG.md` entry under `[Unreleased]` with the type
+   (`Added` / `Fixed` / `Changed` / `Enhancement` / `Security`). When the **slice** is done, cut a
+   version per the **Versioning** section.
 
-Keep the change **focused and atomic**: one feature/fix at a time, without touching unrelated code
-along the way.
+**Commit granularity — keep commits short.** Subdivide the slice so each commit is **one small,
+coherent, compiling change** (ideally one class/file + its test), not a dump that touches many files.
+A use case + its test is a commit; the DAO is a commit; the ViewModel + its test is a commit. This
+keeps each step reviewable and easy to learn from. One feature/fix at a time; don't touch unrelated
+code along the way.
 
 ---
 
@@ -220,7 +251,8 @@ than accumulating a large backlog of unreleased changes.
 ## Do's and don'ts
 
 **Do:**
-- Respect Clean Architecture and the `ui → domain ← data` flow.
+- Group code **by feature** (`feature/<name>/{domain,data,ui}`); keep only truly shared pieces in
+  `core/`. Respect the per-slice `ui → domain ← data` dependency rule.
 - Apply SOLID: single responsibility, small interfaces, dependencies toward abstractions.
 - A single immutable `UiState` per screen with explicit states.
 - Build UI from design tokens (`MaterialTheme.*`) and shared `ui/components/`; support light & dark.
@@ -235,5 +267,8 @@ than accumulating a large backlog of unreleased changes.
 - Don't hardcode secrets, keys or passphrases; don't log financial data.
 - Don't add heavy charting libraries (charts are drawn with Canvas).
 - Don't hardcode colors, sizes or fonts in Composables, or use `colorScheme.error` for expenses.
-- Don't let `DESIGN.md` and the `ui/theme/` tokens drift apart.
-- Don't mix several features/fixes in a single change.
+- Don't let `DESIGN.md` and the `core/ui/theme/` tokens drift apart.
+- Don't mix several features/fixes in a single change, and **don't dump many files into one commit** —
+  keep commits short and coherent.
+- Don't import another feature's internals from a feature; collaborate via `core/` or domain contracts.
+- Don't promote code to `core/` speculatively (YAGNI) — wait until ≥2 features need it.
