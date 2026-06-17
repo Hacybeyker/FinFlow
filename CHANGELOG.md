@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ### Added
 - `Money` domain value class in `core/domain`: exact monetary amounts stored as `Long` minor units
   (no floating point), with `+`/`-`/unary-minus operators, `Comparable`, sign helpers and `ZERO`.
+- `TransactionType` enum (`INCOME` / `EXPENSE`) in `feature/transactions/domain`.
 
 ### Changed
 - Adopted **Vertical Slice Architecture** (feature-first packaging): moved existing code to
