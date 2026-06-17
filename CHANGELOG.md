@@ -10,6 +10,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+- **Hilt dependency injection** wired with KSP: `FinFlowApplication` (`@HiltAndroidApp`),
+  `@AndroidEntryPoint` on `MainActivity`, and `hilt-navigation-compose` for `hiltViewModel()`.
+- Clean Architecture package skeleton: `domain/` and `data/` (alongside the existing `ui/`).
+
+### Fixed
+- Hilt's aggregating processor could not read Kotlin 2.4.0 class metadata; pinned
+  `kotlin-metadata-jvm` (tied to the `kotlin` catalog version) on the annotation-processor classpath.
+
 ## [0.1.0] - 2026-06-16
 
 ### Added
