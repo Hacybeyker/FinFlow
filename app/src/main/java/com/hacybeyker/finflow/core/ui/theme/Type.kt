@@ -1,4 +1,4 @@
-package com.hacybeyker.finflow.ui.theme
+package com.hacybeyker.finflow.core.ui.theme
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle

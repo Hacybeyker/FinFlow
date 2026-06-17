@@ -1,4 +1,4 @@
-package com.hacybeyker.finflow.ui.home
+package com.hacybeyker.finflow.feature.transactions.ui
 
 import android.content.res.Configuration
 import androidx.compose.foundation.layout.Arrangement
@@ -12,8 +12,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
-import com.hacybeyker.finflow.ui.theme.FinFlowTheme
-import com.hacybeyker.finflow.ui.theme.spacing
+import com.hacybeyker.finflow.core.ui.theme.FinFlowTheme
+import com.hacybeyker.finflow.core.ui.theme.spacing
 
 /**
  * Home screen — empty placeholder for Phase 0. Its real content (balance card + transaction list)

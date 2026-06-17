@@ -1,11 +1,11 @@
-package com.hacybeyker.finflow.ui.navigation
+package com.hacybeyker.finflow.navigation
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.ui.NavDisplay
-import com.hacybeyker.finflow.ui.home.HomeScreen
+import com.hacybeyker.finflow.feature.transactions.ui.HomeScreen
 
 @Composable
 fun FinFlowNavHost(modifier: Modifier = Modifier) {
