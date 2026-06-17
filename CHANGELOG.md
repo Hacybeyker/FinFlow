@@ -14,6 +14,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - `Money` domain value class in `core/domain`: exact monetary amounts stored as `Long` minor units
   (no floating point), with `+`/`-`/unary-minus operators, `Comparable`, sign helpers and `ZERO`.
 - `TransactionType` enum (`INCOME` / `EXPENSE`) in `feature/transactions/domain`.
+- `Category` domain model (`id`, `name`) in `feature/transactions/domain`.
+- `Transaction` domain model (embeds its `Category`, exposes `signedAmount()`), the
+  `TransactionRepository` interface (reactive `Flow` reads + `add`), and the `GetBalance`,
+  `GetTransactionsByMonth` and `AddTransaction` use cases (with validation), each unit-tested with an
+  in-memory fake repository.
 
 ### Changed
 - Adopted **Vertical Slice Architecture** (feature-first packaging): moved existing code to
