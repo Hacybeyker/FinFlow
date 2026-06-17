@@ -14,6 +14,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - **Hilt dependency injection** wired with KSP: `FinFlowApplication` (`@HiltAndroidApp`),
   `@AndroidEntryPoint` on `MainActivity`, and `hilt-navigation-compose` for `hiltViewModel()`.
 - Clean Architecture package skeleton: `domain/` and `data/` (alongside the existing `ui/`).
+- **Navigation 3** wiring under `ui/navigation/`: an app-owned, saveable back stack (`@Serializable`
+  `NavKey`s) rendered by `NavDisplay`, plus an empty themed `HomeScreen` as the start destination.
 
 ### Fixed
 - Hilt's aggregating processor could not read Kotlin 2.4.0 class metadata; pinned
