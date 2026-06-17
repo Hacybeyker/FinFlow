@@ -153,11 +153,11 @@ feature needs, top-down through its own layers — never "all the domain of the 
    (`Added` / `Fixed` / `Changed` / `Enhancement` / `Security`). When the **slice** is done, cut a
    version per the **Versioning** section.
 
-**Commit granularity — keep commits short.** Subdivide the slice so each commit is **one small,
-coherent, compiling change** (ideally one class/file + its test), not a dump that touches many files.
-A use case + its test is a commit; the DAO is a commit; the ViewModel + its test is a commit. This
-keeps each step reviewable and easy to learn from. One feature/fix at a time; don't touch unrelated
-code along the way.
+**Commit granularity — group by functional unit, not by file.** "Short/simple" does **not** mean one
+commit per class. Group the classes **needed to deliver something functional** toward the objective —
+typically by layer (`domain` / `data` / `ui`) or by sub-objective. Each commit must **compile and pass
+`codeQuality` + tests**. If a feature involves many classes (say ~15), analyze it and split into ~2
+coherent commits, not 15. One feature/fix at a time; don't touch unrelated code along the way.
 
 ---
 
