@@ -4,7 +4,8 @@ Guide for AI agents (Claude Code, Gemini in Android Studio, Cursor, Copilot, etc
 contribute to **FinFlow**. Follows the [agents.md](https://agents.md/) standard.
 
 This file defines **the standards, architecture and best practices** used to implement any change
-in the repository. For the product vision and user-facing commands, see [README.md](README.md).
+in the repository. For the product vision and user-facing commands, see [README.md](README.md); for
+the visual design system (colors, typography, spacing, components), see [DESIGN.md](DESIGN.md).
 
 ---
 
@@ -85,6 +86,27 @@ Dependency rule: **`ui → domain ← data`**.
 
 ---
 
+## Design system (mandatory for any UI)
+
+The full visual contract lives in **[DESIGN.md](DESIGN.md)**; read it before building or changing
+any screen or component. Non-negotiable rules:
+
+- **Tokens only.** In a `@Composable`, **never** hardcode `Color(0x…)`, a magic `.dp`, a raw
+  `.sp`/`fontSize` or `FontFamily.Default`. Always consume `MaterialTheme.colorScheme.*`,
+  `MaterialTheme.financeColors.*`, `MaterialTheme.typography.*`, `MaterialTheme.spacing.*`,
+  `MaterialTheme.shapes.*` (defined under `ui/theme/`).
+- **Income/expense semantics:** use `MaterialTheme.financeColors` (income = green, expense = coral),
+  never `colorScheme.error` or a raw green/red. Pair color with a sign/icon (don't rely on color
+  alone).
+- **Shared components:** reuse (or add) "dumb" components in `ui/components/` instead of re-creating
+  visual patterns per screen. Each MVI screen renders explicit `loading / empty / content / error`
+  via shared state scaffolds.
+- **Light & dark:** every screen/component works in both themes, with `@Preview` for each.
+- **No drift:** `DESIGN.md` and the `ui/theme/` tokens are kept in sync in the same commit. The
+  runtime source of truth is the Kotlin theme.
+
+---
+
 ## Workflow to implement a feature / fix / enhancement
 
 1. **Locate the right layer.** Is it a business rule? → `domain`. Persistence/mapping? → `data`.
@@ -98,11 +120,43 @@ Dependency rule: **`ui → domain ← data`**.
 5. **Tests:** unit tests for the new logic (use case and/or ViewModel). Screenshot test if there's
    relevant visual UI (e.g. the chart).
 6. **Verify:** `./gradlew formatAndAnalyze` and `./gradlew test` green.
-7. **Document:** add an entry to `CHANGELOG.md` under `[Unreleased]` with the type
-   (`Added` / `Fixed` / `Changed` / `Enhancement` / `Security`).
+7. **Document & version:** add an entry to `CHANGELOG.md` under `[Unreleased]` with the type
+   (`Added` / `Fixed` / `Changed` / `Enhancement` / `Security`). When the step/phase is done, cut a
+   version following the **Versioning** section (bump `versionName`/`versionCode`, date the
+   changelog section, tag).
 
 Keep the change **focused and atomic**: one feature/fix at a time, without touching unrelated code
 along the way.
+
+---
+
+## Versioning
+
+The project follows [Semantic Versioning](https://semver.org/) `MAJOR.MINOR.PATCH`. The app is
+**not released yet**, so it stays in the **`0.y.z`** range until the first public release, which
+becomes `1.0.0`. A version identifies a **cut/milestone**, never a single commit.
+
+**When to bump (matched to the phased plan):**
+- **PATCH** (`0.1.1`, `0.1.2`, …) — each **self-contained step** within a phase (e.g. "add the
+  `Transaction` entity", "add the `GetBalance` use case"). Bump when the step works on its own.
+- **MINOR** (`0.2.0`) — when a **phase / user-visible milestone** is completed.
+- **MAJOR** (`1.0.0`) — the **first public release**.
+
+**`versionName` vs `versionCode`** (in `app/build.gradle.kts`):
+- `versionName` is the human SemVer string above.
+- `versionCode` is a monotonically increasing integer. **Increment it by 1 on every `versionName`
+  bump** (keeps it future-proof for distribution).
+
+**Release loop (do this for every bump, so `[Unreleased]` never piles up):**
+1. While working, add entries under `## [Unreleased]` in `CHANGELOG.md` (grouped by `Added` /
+   `Fixed` / `Changed` / `Enhancement` / `Security`).
+2. To cut the version: rename `[Unreleased]` to `## [x.y.z] - YYYY-MM-DD` and add a fresh empty
+   `## [Unreleased]` above it.
+3. Bump `versionName` (and `versionCode`) in `app/build.gradle.kts`.
+4. Tag the commit: `git tag vX.Y.Z`.
+
+Keep `[Unreleased]` small: promote it to a numbered version as soon as a step/phase is done, rather
+than accumulating a large backlog of unreleased changes.
 
 ---
 
@@ -169,6 +223,7 @@ along the way.
 - Respect Clean Architecture and the `ui → domain ← data` flow.
 - Apply SOLID: single responsibility, small interfaces, dependencies toward abstractions.
 - A single immutable `UiState` per screen with explicit states.
+- Build UI from design tokens (`MaterialTheme.*`) and shared `ui/components/`; support light & dark.
 - Accompany new logic with unit tests and, if there's visual UI, a screenshot test.
 - Centralize dependencies in the Version Catalog and justify each addition.
 - Keep `formatAndAnalyze` and the tests green, and update the `CHANGELOG.md`.
@@ -179,4 +234,6 @@ along the way.
 - Don't use `fallbackToDestructiveMigration`, wildcard imports or trailing commas.
 - Don't hardcode secrets, keys or passphrases; don't log financial data.
 - Don't add heavy charting libraries (charts are drawn with Canvas).
+- Don't hardcode colors, sizes or fonts in Composables, or use `colorScheme.error` for expenses.
+- Don't let `DESIGN.md` and the `ui/theme/` tokens drift apart.
 - Don't mix several features/fixes in a single change.

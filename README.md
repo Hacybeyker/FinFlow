@@ -70,14 +70,15 @@ FinFlow/
 ├── gradle/libs.versions.toml  # Version Catalog (dependencies SSOT)
 ├── lint.xml · .editorconfig   # Lint rules and code style
 ├── CHANGELOG.md               # Version history
+├── DESIGN.md                  # Design system (colors, typography, spacing, components)
 └── AGENTS.md                  # Standards and guide for AI assistants
 ```
 
 ## 🤝 Contributing · 🤖 For AI assistants
 
-The **architecture, SOLID standards, MVI patterns and implementation rules** live in **[AGENTS.md](AGENTS.md)** — read it before touching any code (human or AI).
+The **architecture, SOLID standards, MVI patterns and implementation rules** live in **[AGENTS.md](AGENTS.md)**, and the **visual design system** (colors, typography, spacing, components, light/dark) in **[DESIGN.md](DESIGN.md)** — read both before touching any code (human or AI).
 
-In short: ktlint `android_studio` style, `max_line_length = 120`, 4-space indentation, **no wildcard imports or trailing commas**, dependencies always via the Version Catalog. Keep `formatAndAnalyze` and the tests green, and update the `CHANGELOG.md`.
+In short: ktlint `android_studio` style, `max_line_length = 120`, 4-space indentation, **no wildcard imports or trailing commas**, dependencies always via the Version Catalog, and UI built only from design tokens (`MaterialTheme.*`). Keep `formatAndAnalyze` and the tests green, and update the `CHANGELOG.md`.
 
 ## 📄 License
 
