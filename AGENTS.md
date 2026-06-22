@@ -200,7 +200,10 @@ than accumulating a large backlog of unreleased changes.
 - `@Composable`/`@Preview` functions in **PascalCase** (exception already configured). All other
   functions in camelCase; classes in PascalCase.
 - Descriptive, intention-revealing names; no cryptic abbreviations.
-- Comment only the **non-obvious** (the why), not the obvious.
+- Comment only the **non-obvious** (the why), not the obvious. **Default to no comment**: don't add
+  KDoc/comments that just restate what the class/function name already says (e.g. "Provides the app
+  database" on a Hilt module). Comment **only** when it adds real value: a non-obvious *why*, a design
+  decision, a warning, or something counterintuitive (e.g. "no dispatcher because Room already threads").
 - Dependencies **always** in the Version Catalog (`gradle/libs.versions.toml`), referenced with
   `libs.*`. Never inline versions in `build.gradle.kts`.
 
