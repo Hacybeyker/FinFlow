@@ -8,13 +8,13 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
-class AddTransactionTest {
+class AddTransactionUseCaseTest {
 
     @Test
     fun `stores a transaction with a positive amount`() = runTest {
         val repository = FakeTransactionRepository()
 
-        val result = AddTransaction(repository).invoke(transaction(amount = 500))
+        val result = AddTransactionUseCase(repository).invoke(transaction(amount = 500))
 
         assertEquals(AddTransactionResult.Success, result)
         assertEquals(1, repository.observeAll().first().size)
@@ -24,7 +24,7 @@ class AddTransactionTest {
     fun `rejects a non-positive amount and stores nothing`() = runTest {
         val repository = FakeTransactionRepository()
 
-        val result = AddTransaction(repository).invoke(transaction(amount = 0))
+        val result = AddTransactionUseCase(repository).invoke(transaction(amount = 0))
 
         assertEquals(AddTransactionResult.InvalidAmount, result)
         assertTrue(repository.observeAll().first().isEmpty())

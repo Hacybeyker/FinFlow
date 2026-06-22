@@ -9,7 +9,7 @@ import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
-class GetBalanceTest {
+class GetBalanceUseCaseTest {
 
     @Test
     fun `balance adds income and subtracts expenses`() = runTest {
@@ -21,14 +21,14 @@ class GetBalanceTest {
             )
         )
 
-        val balance = GetBalance(repository).invoke().first()
+        val balance = GetBalanceUseCase(repository).invoke().first()
 
         assertEquals(Money(500), balance)
     }
 
     @Test
     fun `balance is zero when there are no transactions`() = runTest {
-        val balance = GetBalance(FakeTransactionRepository()).invoke().first()
+        val balance = GetBalanceUseCase(FakeTransactionRepository()).invoke().first()
 
         assertEquals(Money.ZERO, balance)
     }

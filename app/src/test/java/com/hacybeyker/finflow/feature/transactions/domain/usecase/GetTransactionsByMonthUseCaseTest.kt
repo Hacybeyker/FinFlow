@@ -10,7 +10,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
-class GetTransactionsByMonthTest {
+class GetTransactionsByMonthUseCaseTest {
 
     @Test
     fun `returns only transactions within the requested month`() = runTest {
@@ -23,7 +23,7 @@ class GetTransactionsByMonthTest {
             )
         )
 
-        val june = GetTransactionsByMonth(repository).invoke(YearMonth.of(2026, 6)).first()
+        val june = GetTransactionsByMonthUseCase(repository).invoke(YearMonth.of(2026, 6)).first()
 
         assertEquals(2, june.size)
     }
@@ -34,7 +34,7 @@ class GetTransactionsByMonthTest {
             listOf(transaction(date = LocalDate.of(2026, 5, 30)))
         )
 
-        val june = GetTransactionsByMonth(repository).invoke(YearMonth.of(2026, 6)).first()
+        val june = GetTransactionsByMonthUseCase(repository).invoke(YearMonth.of(2026, 6)).first()
 
         assertTrue(june.isEmpty())
     }

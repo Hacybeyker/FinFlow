@@ -19,6 +19,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   `TransactionRepository` interface (reactive `Flow` reads + `add`), and the `GetBalance`,
   `GetTransactionsByMonth` and `AddTransaction` use cases (with validation), each unit-tested with an
   in-memory fake repository.
+- **Room persistence** for transactions (SSOT): `FinFlowDatabase` in `core/database` with its Hilt
+  module, plus the feature's `TransactionEntity`/`TransactionDao` (primitive columns, no
+  TypeConverters), entity↔domain mapper (unit-tested) and `RoomTransactionRepository` wired with Hilt.
+  The category is stored as a denormalized snapshot for now (normalized table arrives in the categories
+  slice).
 
 ### Changed
 - Adopted **Vertical Slice Architecture** (feature-first packaging): moved existing code to
