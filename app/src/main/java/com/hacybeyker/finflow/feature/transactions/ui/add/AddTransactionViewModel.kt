@@ -6,8 +6,8 @@ import androidx.lifecycle.viewModelScope
 import com.hacybeyker.finflow.core.ui.format.parseMoneyOrNull
 import com.hacybeyker.finflow.feature.transactions.domain.Category
 import com.hacybeyker.finflow.feature.transactions.domain.Transaction
-import com.hacybeyker.finflow.feature.transactions.domain.usecase.AddTransactionResult
 import com.hacybeyker.finflow.feature.transactions.domain.usecase.AddTransactionUseCase
+import com.hacybeyker.finflow.feature.transactions.domain.usecase.TransactionWriteResult
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.time.Clock
 import java.time.LocalDate
@@ -65,8 +65,8 @@ class AddTransactionViewModel @Inject constructor(private val addTransaction: Ad
                 )
             )
             when (result) {
-                AddTransactionResult.Success -> _uiState.update { it.copy(isSaved = true) }
-                AddTransactionResult.InvalidAmount ->
+                TransactionWriteResult.Success -> _uiState.update { it.copy(isSaved = true) }
+                TransactionWriteResult.InvalidAmount ->
                     _uiState.update { it.copy(error = AddTransactionError.INVALID_AMOUNT) }
             }
         }

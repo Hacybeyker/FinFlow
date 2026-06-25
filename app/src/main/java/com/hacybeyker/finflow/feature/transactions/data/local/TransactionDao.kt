@@ -1,8 +1,10 @@
 package com.hacybeyker.finflow.feature.transactions.data.local
 
 import androidx.room.Dao
+import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
+import androidx.room.Update
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -19,4 +21,10 @@ interface TransactionDao {
 
     @Insert
     suspend fun insert(entity: TransactionEntity)
+
+    @Update
+    suspend fun update(entity: TransactionEntity)
+
+    @Delete
+    suspend fun delete(entity: TransactionEntity)
 }

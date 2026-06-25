@@ -26,4 +26,8 @@ class RoomTransactionRepository @Inject constructor(private val dao: Transaction
     }
 
     override suspend fun add(transaction: Transaction) = dao.insert(transaction.toEntity())
+
+    override suspend fun update(transaction: Transaction) = dao.update(transaction.toEntity())
+
+    override suspend fun delete(transaction: Transaction) = dao.delete(transaction.toEntity())
 }

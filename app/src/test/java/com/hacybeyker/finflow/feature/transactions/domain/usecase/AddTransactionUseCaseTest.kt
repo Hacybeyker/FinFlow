@@ -16,7 +16,7 @@ class AddTransactionUseCaseTest {
 
         val result = AddTransactionUseCase(repository).invoke(transaction(amount = 500))
 
-        assertEquals(AddTransactionResult.Success, result)
+        assertEquals(TransactionWriteResult.Success, result)
         assertEquals(1, repository.observeAll().first().size)
     }
 
@@ -26,7 +26,7 @@ class AddTransactionUseCaseTest {
 
         val result = AddTransactionUseCase(repository).invoke(transaction(amount = 0))
 
-        assertEquals(AddTransactionResult.InvalidAmount, result)
+        assertEquals(TransactionWriteResult.InvalidAmount, result)
         assertTrue(repository.observeAll().first().isEmpty())
     }
 }

@@ -20,16 +20,26 @@ class FakeTransactionRepository(initial: List<Transaction> = emptyList()) : Tran
     override suspend fun add(transaction: Transaction) {
         transactions.value = transactions.value + transaction
     }
+
+    override suspend fun update(transaction: Transaction) {
+        transactions.value = transactions.value.map { if (it.id == transaction.id) transaction else it }
+    }
+
+    override suspend fun delete(transaction: Transaction) {
+        transactions.value = transactions.value.filterNot { it.id == transaction.id }
+    }
 }
 
 /** Builds a [Transaction] with sensible defaults so each test only sets what it cares about. */
 fun transaction(
+    id: Long = 0,
     amount: Long = 1000,
     type: TransactionType = TransactionType.EXPENSE,
     date: LocalDate = LocalDate.of(2026, 6, 15),
     category: Category = Category(id = 1, name = "Test"),
     note: String = ""
 ): Transaction = Transaction(
+    id = id,
     amount = Money(amount),
     type = type,
     category = category,

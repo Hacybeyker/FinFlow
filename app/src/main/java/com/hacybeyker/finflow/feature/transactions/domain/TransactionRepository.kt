@@ -10,4 +10,8 @@ interface TransactionRepository {
     fun observeByMonth(month: YearMonth): Flow<List<Transaction>>
 
     suspend fun add(transaction: Transaction)
+
+    suspend fun update(transaction: Transaction)
+
+    suspend fun delete(transaction: Transaction)
 }
