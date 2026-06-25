@@ -10,6 +10,8 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.platform.LocalContext
+import com.hacybeyker.finflow.core.ui.format.LocalMoneyFormatter
+import com.hacybeyker.finflow.core.ui.format.MoneyFormatter
 
 private val LightColorScheme = lightColorScheme(
     primary = PrimaryLight,
@@ -89,7 +91,8 @@ fun FinFlowTheme(
 
     CompositionLocalProvider(
         LocalFinanceColors provides financeColors,
-        LocalSpacing provides Spacing()
+        LocalSpacing provides Spacing(),
+        LocalMoneyFormatter provides MoneyFormatter()
     ) {
         MaterialTheme(
             colorScheme = colorScheme,
