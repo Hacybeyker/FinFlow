@@ -2,6 +2,8 @@ package com.hacybeyker.finflow.core.database
 
 import androidx.room.Database
 import androidx.room.RoomDatabase
+import com.hacybeyker.finflow.feature.transactions.data.local.CategoryDao
+import com.hacybeyker.finflow.feature.transactions.data.local.CategoryEntity
 import com.hacybeyker.finflow.feature.transactions.data.local.TransactionDao
 import com.hacybeyker.finflow.feature.transactions.data.local.TransactionEntity
 
@@ -9,10 +11,11 @@ import com.hacybeyker.finflow.feature.transactions.data.local.TransactionEntity
  * The single Room database for the whole app (SSOT). It is cross-feature by nature: it aggregates the
  * `@Entity`/DAO that each feature contributes, so it lives in `core` rather than inside a feature.
  *
- * `exportSchema` is off for now; it will be enabled (with a schema location) when versioned
- * migrations arrive (categories table in Slice 2, encryption in Slice 4).
+ * `exportSchema` is on (schema JSONs under `app/schemas`) so versioned migrations can be diffed and
+ * tested. v2 adds the `categories` table (see [MIGRATION_1_2]).
  */
-@Database(entities = [TransactionEntity::class], version = 1, exportSchema = false)
+@Database(entities = [TransactionEntity::class, CategoryEntity::class], version = 2, exportSchema = true)
 abstract class FinFlowDatabase : RoomDatabase() {
     abstract fun transactionDao(): TransactionDao
+    abstract fun categoryDao(): CategoryDao
 }
