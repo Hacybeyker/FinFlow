@@ -8,6 +8,7 @@ import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
 import com.hacybeyker.finflow.feature.transactions.ui.add.AddTransactionScreen
+import com.hacybeyker.finflow.feature.transactions.ui.categories.CategoriesScreen
 import com.hacybeyker.finflow.feature.transactions.ui.home.HomeScreen
 
 @Composable
@@ -22,8 +23,14 @@ fun FinFlowNavHost(modifier: Modifier = Modifier) {
             rememberViewModelStoreNavEntryDecorator()
         ),
         entryProvider = entryProvider {
-            entry<Home> { HomeScreen(onAddTransaction = { backStack.add(AddTransaction) }) }
+            entry<Home> {
+                HomeScreen(
+                    onAddTransaction = { backStack.add(AddTransaction) },
+                    onManageCategories = { backStack.add(Categories) }
+                )
+            }
             entry<AddTransaction> { AddTransactionScreen(onDone = { backStack.removeLastOrNull() }) }
+            entry<Categories> { CategoriesScreen(onBack = { backStack.removeLastOrNull() }) }
         }
     )
 }

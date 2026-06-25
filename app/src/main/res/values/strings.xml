@@ -5,6 +5,19 @@
     <string name="home_balance_label">Balance</string>
     <string name="home_empty">Aún no tienes movimientos este mes</string>
     <string name="home_add_transaction">Agregar movimiento</string>
+    <string name="home_manage_categories">Categorías</string>
+
+    <!-- Categories -->
+    <string name="categories_title">Categorías</string>
+    <string name="categories_empty">Aún no tienes categorías</string>
+    <string name="categories_add">Nueva categoría</string>
+    <string name="categories_name_label">Nombre</string>
+    <string name="categories_rename">Renombrar</string>
+    <string name="categories_delete">Eliminar</string>
+    <string name="categories_delete_title">Eliminar categoría</string>
+    <string name="categories_delete_message">¿Eliminar la categoría «%1$s»?</string>
+    <string name="categories_error_invalid">Ingresa un nombre</string>
+    <string name="categories_error_duplicate">Ya existe una categoría con ese nombre</string>
 
     <!-- Add transaction -->
     <string name="add_title">Nuevo movimiento</string>

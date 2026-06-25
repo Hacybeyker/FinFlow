@@ -10,12 +10,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -44,19 +46,42 @@ import java.time.format.FormatStyle
 @Composable
 fun HomeScreen(
     onAddTransaction: () -> Unit,
+    onManageCategories: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: HomeViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    HomeContent(uiState = uiState, onAddTransaction = onAddTransaction, modifier = modifier)
+    HomeContent(
+        uiState = uiState,
+        onAddTransaction = onAddTransaction,
+        onManageCategories = onManageCategories,
+        modifier = modifier
+    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun HomeContent(uiState: HomeUiState, onAddTransaction: () -> Unit, modifier: Modifier = Modifier) {
+private fun HomeContent(
+    uiState: HomeUiState,
+    onAddTransaction: () -> Unit,
+    onManageCategories: () -> Unit,
+    modifier: Modifier = Modifier
+) {
     Scaffold(
         modifier = modifier.fillMaxSize(),
-        topBar = { TopAppBar(title = { Text(stringResource(R.string.app_name)) }) },
+        topBar = {
+            TopAppBar(
+                title = { Text(stringResource(R.string.app_name)) },
+                actions = {
+                    IconButton(onClick = onManageCategories) {
+                        Icon(
+                            Icons.AutoMirrored.Filled.List,
+                            contentDescription = stringResource(R.string.home_manage_categories)
+                        )
+                    }
+                }
+            )
+        },
         floatingActionButton = {
             FloatingActionButton(onClick = onAddTransaction) {
                 Icon(Icons.Default.Add, contentDescription = stringResource(R.string.home_add_transaction))
@@ -173,7 +198,8 @@ private fun HomeContentPreview() {
                     )
                 )
             ),
-            onAddTransaction = {}
+            onAddTransaction = {},
+            onManageCategories = {}
         )
     }
 }
@@ -184,7 +210,8 @@ private fun HomeEmptyPreview() {
     FinFlowTheme {
         HomeContent(
             uiState = HomeUiState.Content(balance = Money.ZERO, transactions = emptyList()),
-            onAddTransaction = {}
+            onAddTransaction = {},
+            onManageCategories = {}
         )
     }
 }
