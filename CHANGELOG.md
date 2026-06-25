@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 > **Change types:** `Added` (feature), `Fixed` (fix), `Changed` / `Enhancement` (improvement),
 > `Deprecated`, `Removed`, `Security`.
 
-## [Unreleased]
+## [0.3.0] - 2026-06-25
 
 ### Added
 - `Money` domain value class in `core/domain`: exact monetary amounts stored as `Long` minor units
@@ -25,8 +25,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   The category is stored as a denormalized snapshot for now (normalized table arrives in the categories
   slice).
 - **Home UI (MVI):** `HomeScreen` with a balance card and the current month's transaction list, driven
-  by `HomeViewModel` (`StateFlow` combining balance + list into `Loading`/`Empty`/`Content`),
-  unit-tested with Turbine. Reactive: a new transaction shows up instantly.
+  by `HomeViewModel` (a `StateFlow` that combines balance + list into a single `Content` state, plus
+  `Loading`), unit-tested with Turbine. Reactive: a new transaction shows up instantly, and the
+  all-time balance stays correct even when the current month has no movements.
 - **Add-transaction screen:** full `AddTransactionScreen` (amount, income/expense, category, date
   picker, note) reached from a Home FAB via a new Nav3 `AddTransaction` route, backed by
   `AddTransactionViewModel` (MVI intents, amount/category validation), unit-tested.
