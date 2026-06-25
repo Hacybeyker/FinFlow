@@ -24,6 +24,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   TypeConverters), entity↔domain mapper (unit-tested) and `RoomTransactionRepository` wired with Hilt.
   The category is stored as a denormalized snapshot for now (normalized table arrives in the categories
   slice).
+- **Home UI (MVI):** `HomeScreen` with a balance card and the current month's transaction list, driven
+  by `HomeViewModel` (`StateFlow` combining balance + list into `Loading`/`Empty`/`Content`),
+  unit-tested with Turbine. Reactive: a new transaction shows up instantly.
+- **Add-transaction screen:** full `AddTransactionScreen` (amount, income/expense, category, date
+  picker, note) reached from a Home FAB via a new Nav3 `AddTransaction` route, backed by
+  `AddTransactionViewModel` (MVI intents, amount/category validation), unit-tested.
+- Shared UI: `AmountText` component (income green / expense coral + `+`/`−` sign, accessibility) and a
+  `MoneyFormatter` (device locale/currency by default, overridable via `LocalMoneyFormatter` for a
+  future currency setting) with an exact `BigDecimal` amount parser.
 
 ### Changed
 - Adopted **Vertical Slice Architecture** (feature-first packaging): moved existing code to

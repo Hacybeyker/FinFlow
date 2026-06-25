@@ -5,8 +5,7 @@ enum class TransactionType {
     EXPENSE;
 
     companion object {
-        fun fromStorage(value: String): TransactionType =
-            entries.find { it.name == value }
-                ?: error("Unknown TransactionType stored: '$value'")
+        fun fromStorage(value: String): TransactionType = entries.find { it.name == value }
+            ?: error("Unknown TransactionType stored: '$value'")
     }
 }
