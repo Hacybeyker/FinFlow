@@ -6,52 +6,91 @@ import androidx.lifecycle.viewModelScope
 import com.hacybeyker.finflow.core.ui.format.parseMoneyOrNull
 import com.hacybeyker.finflow.feature.transactions.domain.Category
 import com.hacybeyker.finflow.feature.transactions.domain.Transaction
+import com.hacybeyker.finflow.feature.transactions.domain.TransactionType
+import com.hacybeyker.finflow.feature.transactions.domain.usecase.AddCategoryUseCase
 import com.hacybeyker.finflow.feature.transactions.domain.usecase.AddTransactionUseCase
+import com.hacybeyker.finflow.feature.transactions.domain.usecase.CategorySaveResult
+import com.hacybeyker.finflow.feature.transactions.domain.usecase.GetCategoriesUseCase
 import com.hacybeyker.finflow.feature.transactions.domain.usecase.TransactionWriteResult
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.time.Clock
 import java.time.LocalDate
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 @Stable
 @HiltViewModel
-class AddTransactionViewModel @Inject constructor(private val addTransaction: AddTransactionUseCase, clock: Clock) :
-    ViewModel() {
+class AddTransactionViewModel @Inject constructor(
+    private val addTransaction: AddTransactionUseCase,
+    private val addCategory: AddCategoryUseCase,
+    getCategories: GetCategoriesUseCase,
+    clock: Clock
+) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(AddTransactionUiState(date = LocalDate.now(clock)))
-    val uiState: StateFlow<AddTransactionUiState> = _uiState.asStateFlow()
+    private val form = MutableStateFlow(FormState(date = LocalDate.now(clock)))
+
+    val uiState: StateFlow<AddTransactionUiState> =
+        combine(form, getCategories()) { form, categories ->
+            AddTransactionUiState(
+                amountInput = form.amountInput,
+                type = form.type,
+                categories = categories,
+                selectedCategory = form.selectedCategory,
+                date = form.date,
+                note = form.note,
+                error = form.error,
+                isSaved = form.isSaved
+            )
+        }.stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(STOP_TIMEOUT_MILLIS),
+            initialValue = AddTransactionUiState(date = LocalDate.now(clock))
+        )
 
     fun onIntent(intent: AddTransactionIntent) {
         when (intent) {
-            is AddTransactionIntent.AmountChanged -> _uiState.update {
-                it.copy(amountInput = intent.value, error = null)
-            }
+            is AddTransactionIntent.AmountChanged -> form.update { it.copy(amountInput = intent.value, error = null) }
+            is AddTransactionIntent.TypeChanged -> form.update { it.copy(type = intent.type) }
+            is AddTransactionIntent.CategorySelected ->
+                form.update { it.copy(selectedCategory = intent.category, error = null) }
 
-            is AddTransactionIntent.TypeChanged -> _uiState.update { it.copy(type = intent.type) }
-            is AddTransactionIntent.CategoryChanged -> _uiState.update {
-                it.copy(category = intent.value, error = null)
-            }
-
-            is AddTransactionIntent.DateChanged -> _uiState.update { it.copy(date = intent.date) }
-            is AddTransactionIntent.NoteChanged -> _uiState.update { it.copy(note = intent.value) }
+            is AddTransactionIntent.CreateCategory -> createCategory(intent.name)
+            is AddTransactionIntent.DateChanged -> form.update { it.copy(date = intent.date) }
+            is AddTransactionIntent.NoteChanged -> form.update { it.copy(note = intent.value) }
             AddTransactionIntent.Save -> save()
         }
     }
 
+    private fun createCategory(name: String) = viewModelScope.launch {
+        when (val result = addCategory(name)) {
+            is CategorySaveResult.Success ->
+                form.update { it.copy(selectedCategory = result.category, error = null) }
+
+            CategorySaveResult.Duplicate -> form.update { state ->
+                val existing = uiState.value.categories.firstOrNull { it.name.equals(name.trim(), ignoreCase = true) }
+                state.copy(selectedCategory = existing ?: state.selectedCategory, error = null)
+            }
+
+            CategorySaveResult.InvalidName -> Unit
+        }
+    }
+
     private fun save() {
-        val state = _uiState.value
+        val state = form.value
         val amount = parseMoneyOrNull(state.amountInput)
         if (amount == null || !amount.isPositive) {
-            _uiState.update { it.copy(error = AddTransactionError.INVALID_AMOUNT) }
+            form.update { it.copy(error = AddTransactionError.INVALID_AMOUNT) }
             return
         }
-        if (state.category.isBlank()) {
-            _uiState.update { it.copy(error = AddTransactionError.INVALID_CATEGORY) }
+        val category = state.selectedCategory
+        if (category == null) {
+            form.update { it.copy(error = AddTransactionError.INVALID_CATEGORY) }
             return
         }
         viewModelScope.launch {
@@ -59,16 +98,30 @@ class AddTransactionViewModel @Inject constructor(private val addTransaction: Ad
                 Transaction(
                     amount = amount,
                     type = state.type,
-                    category = Category(name = state.category.trim()),
+                    category = category,
                     date = state.date,
                     note = state.note.trim()
                 )
             )
             when (result) {
-                TransactionWriteResult.Success -> _uiState.update { it.copy(isSaved = true) }
+                TransactionWriteResult.Success -> form.update { it.copy(isSaved = true) }
                 TransactionWriteResult.InvalidAmount ->
-                    _uiState.update { it.copy(error = AddTransactionError.INVALID_AMOUNT) }
+                    form.update { it.copy(error = AddTransactionError.INVALID_AMOUNT) }
             }
         }
+    }
+
+    private data class FormState(
+        val amountInput: String = "",
+        val type: TransactionType = TransactionType.EXPENSE,
+        val selectedCategory: Category? = null,
+        val date: LocalDate,
+        val note: String = "",
+        val error: AddTransactionError? = null,
+        val isSaved: Boolean = false
+    )
+
+    private companion object {
+        const val STOP_TIMEOUT_MILLIS = 5_000L
     }
 }

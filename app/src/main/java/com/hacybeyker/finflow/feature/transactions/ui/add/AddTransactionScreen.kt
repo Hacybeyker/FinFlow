@@ -1,6 +1,7 @@
 package com.hacybeyker.finflow.feature.transactions.ui.add
 
 import android.content.res.Configuration
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -12,6 +13,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
@@ -43,6 +45,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.hacybeyker.finflow.R
 import com.hacybeyker.finflow.core.ui.theme.FinFlowTheme
 import com.hacybeyker.finflow.core.ui.theme.spacing
+import com.hacybeyker.finflow.feature.transactions.domain.Category
 import com.hacybeyker.finflow.feature.transactions.domain.TransactionType
 import java.time.Instant
 import java.time.LocalDate
@@ -128,13 +131,11 @@ private fun AddTransactionForm(
 
         TypeSelector(selected = uiState.type, onSelect = { onIntent(AddTransactionIntent.TypeChanged(it)) })
 
-        OutlinedTextField(
-            value = uiState.category,
-            onValueChange = { onIntent(AddTransactionIntent.CategoryChanged(it)) },
-            label = { Text(stringResource(R.string.add_category_label)) },
-            singleLine = true,
-            isError = uiState.error == AddTransactionError.INVALID_CATEGORY,
-            modifier = Modifier.fillMaxWidth()
+        CategoryField(
+            categories = uiState.categories,
+            selected = uiState.selectedCategory,
+            onSelect = { onIntent(AddTransactionIntent.CategorySelected(it)) },
+            onCreate = { onIntent(AddTransactionIntent.CreateCategory(it)) }
         )
 
         DateField(
@@ -188,6 +189,81 @@ private fun TypeSelector(
     }
 }
 
+@Composable
+private fun CategoryField(
+    categories: List<Category>,
+    selected: Category?,
+    onSelect: (Category) -> Unit,
+    onCreate: (String) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    var showPicker by rememberSaveable { mutableStateOf(false) }
+
+    OutlinedButton(onClick = { showPicker = true }, modifier = modifier.fillMaxWidth()) {
+        val label = stringResource(R.string.add_category_label)
+        Text(if (selected != null) "$label: ${selected.name}" else label)
+    }
+
+    if (showPicker) {
+        CategoryPickerDialog(
+            categories = categories,
+            onSelect = {
+                onSelect(it)
+                showPicker = false
+            },
+            onCreate = {
+                onCreate(it)
+                showPicker = false
+            },
+            onDismiss = { showPicker = false }
+        )
+    }
+}
+
+@Composable
+private fun CategoryPickerDialog(
+    categories: List<Category>,
+    onSelect: (Category) -> Unit,
+    onCreate: (String) -> Unit,
+    onDismiss: () -> Unit
+) {
+    var newName by rememberSaveable { mutableStateOf("") }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.add_category_label)) },
+        text = {
+            Column(
+                modifier = Modifier.verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.xs)
+            ) {
+                categories.forEach { category ->
+                    Text(
+                        text = category.name,
+                        style = MaterialTheme.typography.bodyLarge,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { onSelect(category) }
+                            .padding(vertical = MaterialTheme.spacing.sm)
+                    )
+                }
+                OutlinedTextField(
+                    value = newName,
+                    onValueChange = { newName = it },
+                    label = { Text(stringResource(R.string.add_category_new)) },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = { onCreate(newName) }, enabled = newName.isNotBlank()) {
+                Text(stringResource(R.string.add_category_create))
+            }
+        },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.add_cancel)) } }
+    )
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun DateField(
@@ -238,7 +314,8 @@ private fun AddTransactionPreview() {
         AddTransactionContent(
             uiState = AddTransactionUiState(
                 amountInput = "45.50",
-                category = "Compras",
+                categories = listOf(Category(1, "Comida"), Category(2, "Ocio")),
+                selectedCategory = Category(1, "Comida"),
                 date = LocalDate.of(2026, 6, 22)
             ),
             onIntent = {},

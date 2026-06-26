@@ -1,7 +1,7 @@
 package com.hacybeyker.finflow.feature.transactions.data
 
 import com.hacybeyker.finflow.feature.transactions.data.local.TransactionDao
-import com.hacybeyker.finflow.feature.transactions.data.local.TransactionEntity
+import com.hacybeyker.finflow.feature.transactions.data.local.TransactionWithCategory
 import com.hacybeyker.finflow.feature.transactions.domain.Transaction
 import com.hacybeyker.finflow.feature.transactions.domain.TransactionRepository
 import java.time.YearMonth
@@ -16,13 +16,13 @@ import kotlinx.coroutines.flow.map
 class RoomTransactionRepository @Inject constructor(private val dao: TransactionDao) : TransactionRepository {
 
     override fun observeAll(): Flow<List<Transaction>> =
-        dao.observeAll().map { entities -> entities.map(TransactionEntity::toDomain) }
+        dao.observeAll().map { rows -> rows.map(TransactionWithCategory::toDomain) }
 
     override fun observeByMonth(month: YearMonth): Flow<List<Transaction>> {
         val startEpochDay = month.atDay(1).toEpochDay()
         val endEpochDay = month.atEndOfMonth().toEpochDay()
         return dao.observeByEpochDayRange(startEpochDay, endEpochDay)
-            .map { entities -> entities.map(TransactionEntity::toDomain) }
+            .map { rows -> rows.map(TransactionWithCategory::toDomain) }
     }
 
     override suspend fun add(transaction: Transaction) = dao.insert(transaction.toEntity())

@@ -10,14 +10,17 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface TransactionDao {
 
-    @Query("SELECT * FROM transactions ORDER BY epochDay DESC, id DESC")
-    fun observeAll(): Flow<List<TransactionEntity>>
+    @Query(
+        "SELECT t.*, c.name AS categoryName FROM transactions t JOIN categories c ON t.categoryId = c.id " +
+            "ORDER BY t.epochDay DESC, t.id DESC"
+    )
+    fun observeAll(): Flow<List<TransactionWithCategory>>
 
     @Query(
-        "SELECT * FROM transactions WHERE epochDay BETWEEN :startEpochDay AND :endEpochDay " +
-            "ORDER BY epochDay DESC, id DESC"
+        "SELECT t.*, c.name AS categoryName FROM transactions t JOIN categories c ON t.categoryId = c.id " +
+            "WHERE t.epochDay BETWEEN :startEpochDay AND :endEpochDay ORDER BY t.epochDay DESC, t.id DESC"
     )
-    fun observeByEpochDayRange(startEpochDay: Long, endEpochDay: Long): Flow<List<TransactionEntity>>
+    fun observeByEpochDayRange(startEpochDay: Long, endEpochDay: Long): Flow<List<TransactionWithCategory>>
 
     @Insert
     suspend fun insert(entity: TransactionEntity)
