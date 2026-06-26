@@ -6,11 +6,15 @@ import com.hacybeyker.finflow.core.test.MainDispatcherRule
 import com.hacybeyker.finflow.feature.transactions.domain.FakeTransactionRepository
 import com.hacybeyker.finflow.feature.transactions.domain.TransactionType
 import com.hacybeyker.finflow.feature.transactions.domain.transaction
+import com.hacybeyker.finflow.feature.transactions.domain.usecase.AddTransactionUseCase
+import com.hacybeyker.finflow.feature.transactions.domain.usecase.DeleteTransactionUseCase
 import com.hacybeyker.finflow.feature.transactions.domain.usecase.GetBalanceUseCase
 import com.hacybeyker.finflow.feature.transactions.domain.usecase.GetTransactionsByMonthUseCase
 import java.time.Clock
 import java.time.LocalDate
 import java.time.ZoneOffset
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -30,6 +34,8 @@ class HomeViewModelTest {
     private fun viewModel(repository: FakeTransactionRepository) = HomeViewModel(
         getBalance = GetBalanceUseCase(repository),
         getTransactionsByMonth = GetTransactionsByMonthUseCase(repository),
+        deleteTransaction = DeleteTransactionUseCase(repository),
+        addTransaction = AddTransactionUseCase(repository),
         clock = clock
     )
 
@@ -68,4 +74,22 @@ class HomeViewModelTest {
             cancelAndIgnoreRemainingEvents()
         }
     }
+
+    @Test
+    fun `delete removes the transaction and undo restores it with the same id`() =
+        runTest(mainDispatcherRule.testDispatcher.scheduler) {
+            val target = transaction(id = 1, amount = 500, date = LocalDate.of(2026, 6, 10))
+            val repository = FakeTransactionRepository(listOf(target))
+            val viewModel = viewModel(repository)
+
+            viewModel.delete(target)
+            advanceUntilIdle()
+            assertTrue(repository.observeAll().first().isEmpty())
+
+            viewModel.undoDelete(target)
+            advanceUntilIdle()
+            val restored = repository.observeAll().first()
+            assertEquals(1, restored.size)
+            assertEquals(1L, restored.first().id)
+        }
 }

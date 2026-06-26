@@ -1,7 +1,10 @@
 package com.hacybeyker.finflow.feature.transactions.ui.home
 
 import android.content.res.Configuration
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -12,6 +15,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -20,11 +24,18 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
+import androidx.compose.material3.SwipeToDismissBox
+import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -42,19 +53,35 @@ import com.hacybeyker.finflow.feature.transactions.domain.TransactionType
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
+import kotlinx.coroutines.launch
 
 @Composable
 fun HomeScreen(
     onAddTransaction: () -> Unit,
     onManageCategories: () -> Unit,
+    onEditTransaction: (Long) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: HomeViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+    val deletedMessage = stringResource(R.string.home_deleted)
+    val undoLabel = stringResource(R.string.home_undo)
+
     HomeContent(
         uiState = uiState,
+        snackbarHostState = snackbarHostState,
         onAddTransaction = onAddTransaction,
         onManageCategories = onManageCategories,
+        onEditTransaction = onEditTransaction,
+        onDeleteTransaction = { transaction ->
+            viewModel.delete(transaction)
+            scope.launch {
+                val result = snackbarHostState.showSnackbar(message = deletedMessage, actionLabel = undoLabel)
+                if (result == SnackbarResult.ActionPerformed) viewModel.undoDelete(transaction)
+            }
+        },
         modifier = modifier
     )
 }
@@ -63,12 +90,16 @@ fun HomeScreen(
 @Composable
 private fun HomeContent(
     uiState: HomeUiState,
+    snackbarHostState: SnackbarHostState,
     onAddTransaction: () -> Unit,
     onManageCategories: () -> Unit,
+    onEditTransaction: (Long) -> Unit,
+    onDeleteTransaction: (Transaction) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Scaffold(
         modifier = modifier.fillMaxSize(),
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = { Text(stringResource(R.string.app_name)) },
@@ -105,6 +136,8 @@ private fun HomeContent(
                     } else {
                         TransactionList(
                             transactions = uiState.transactions,
+                            onEdit = onEditTransaction,
+                            onDelete = onDeleteTransaction,
                             modifier = Modifier.padding(top = MaterialTheme.spacing.lg)
                         )
                     }
@@ -134,22 +167,75 @@ private fun BalanceCard(balance: Money, modifier: Modifier = Modifier) {
 }
 
 @Composable
-private fun TransactionList(transactions: List<Transaction>, modifier: Modifier = Modifier) {
+private fun TransactionList(
+    transactions: List<Transaction>,
+    onEdit: (Long) -> Unit,
+    onDelete: (Transaction) -> Unit,
+    modifier: Modifier = Modifier
+) {
     LazyColumn(
         modifier = modifier.fillMaxSize(),
         verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.sm)
     ) {
         items(transactions, key = { it.id }) { transaction ->
-            TransactionRow(transaction)
+            SwipeableTransactionRow(
+                transaction = transaction,
+                onEdit = { onEdit(transaction.id) },
+                onDelete = { onDelete(transaction) }
+            )
         }
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun TransactionRow(transaction: Transaction, modifier: Modifier = Modifier) {
+private fun SwipeableTransactionRow(
+    transaction: Transaction,
+    onEdit: () -> Unit,
+    onDelete: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val dismissState = rememberSwipeToDismissBoxState(
+        confirmValueChange = { value ->
+            (value == SwipeToDismissBoxValue.EndToStart).also { dismissed -> if (dismissed) onDelete() }
+        }
+    )
+    SwipeToDismissBox(
+        state = dismissState,
+        modifier = modifier,
+        enableDismissFromStartToEnd = false,
+        backgroundContent = { DeleteBackground() }
+    ) {
+        TransactionRow(transaction = transaction, onClick = onEdit)
+    }
+}
+
+@Composable
+private fun DeleteBackground(modifier: Modifier = Modifier) {
+    Box(
+        modifier = modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.errorContainer)
+            .padding(horizontal = MaterialTheme.spacing.lg),
+        contentAlignment = Alignment.CenterEnd
+    ) {
+        Icon(
+            Icons.Default.Delete,
+            contentDescription = stringResource(R.string.home_delete),
+            tint = MaterialTheme.colorScheme.onErrorContainer
+        )
+    }
+}
+
+@Composable
+private fun TransactionRow(transaction: Transaction, onClick: () -> Unit, modifier: Modifier = Modifier) {
     val dateFormatter = remember { DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM) }
     Row(
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier
+            .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.background)
+            .clickable(onClick = onClick)
+            .padding(vertical = MaterialTheme.spacing.sm),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Column(modifier = Modifier.weight(1f)) {
@@ -198,8 +284,11 @@ private fun HomeContentPreview() {
                     )
                 )
             ),
+            snackbarHostState = remember { SnackbarHostState() },
             onAddTransaction = {},
-            onManageCategories = {}
+            onManageCategories = {},
+            onEditTransaction = {},
+            onDeleteTransaction = {}
         )
     }
 }
@@ -210,8 +299,11 @@ private fun HomeEmptyPreview() {
     FinFlowTheme {
         HomeContent(
             uiState = HomeUiState.Content(balance = Money.ZERO, transactions = emptyList()),
+            snackbarHostState = remember { SnackbarHostState() },
             onAddTransaction = {},
-            onManageCategories = {}
+            onManageCategories = {},
+            onEditTransaction = {},
+            onDeleteTransaction = {}
         )
     }
 }

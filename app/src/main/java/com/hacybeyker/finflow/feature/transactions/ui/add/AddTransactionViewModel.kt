@@ -3,6 +3,7 @@ package com.hacybeyker.finflow.feature.transactions.ui.add
 import androidx.compose.runtime.Stable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.hacybeyker.finflow.core.domain.Money
 import com.hacybeyker.finflow.core.ui.format.parseMoneyOrNull
 import com.hacybeyker.finflow.feature.transactions.domain.Category
 import com.hacybeyker.finflow.feature.transactions.domain.Transaction
@@ -11,8 +12,11 @@ import com.hacybeyker.finflow.feature.transactions.domain.usecase.AddCategoryUse
 import com.hacybeyker.finflow.feature.transactions.domain.usecase.AddTransactionUseCase
 import com.hacybeyker.finflow.feature.transactions.domain.usecase.CategorySaveResult
 import com.hacybeyker.finflow.feature.transactions.domain.usecase.GetCategoriesUseCase
+import com.hacybeyker.finflow.feature.transactions.domain.usecase.GetTransactionByIdUseCase
 import com.hacybeyker.finflow.feature.transactions.domain.usecase.TransactionWriteResult
+import com.hacybeyker.finflow.feature.transactions.domain.usecase.UpdateTransactionUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import java.math.BigDecimal
 import java.time.Clock
 import java.time.LocalDate
 import javax.inject.Inject
@@ -28,7 +32,9 @@ import kotlinx.coroutines.launch
 @HiltViewModel
 class AddTransactionViewModel @Inject constructor(
     private val addTransaction: AddTransactionUseCase,
+    private val updateTransaction: UpdateTransactionUseCase,
     private val addCategory: AddCategoryUseCase,
+    private val getTransactionById: GetTransactionByIdUseCase,
     getCategories: GetCategoriesUseCase,
     clock: Clock
 ) : ViewModel() {
@@ -45,6 +51,7 @@ class AddTransactionViewModel @Inject constructor(
                 date = form.date,
                 note = form.note,
                 error = form.error,
+                isEditing = form.id != 0L,
                 isSaved = form.isSaved
             )
         }.stateIn(
@@ -55,6 +62,7 @@ class AddTransactionViewModel @Inject constructor(
 
     fun onIntent(intent: AddTransactionIntent) {
         when (intent) {
+            is AddTransactionIntent.Load -> load(intent.transactionId)
             is AddTransactionIntent.AmountChanged -> form.update { it.copy(amountInput = intent.value, error = null) }
             is AddTransactionIntent.TypeChanged -> form.update { it.copy(type = intent.type) }
             is AddTransactionIntent.CategorySelected ->
@@ -64,6 +72,24 @@ class AddTransactionViewModel @Inject constructor(
             is AddTransactionIntent.DateChanged -> form.update { it.copy(date = intent.date) }
             is AddTransactionIntent.NoteChanged -> form.update { it.copy(note = intent.value) }
             AddTransactionIntent.Save -> save()
+        }
+    }
+
+    private fun load(transactionId: Long) {
+        if (form.value.id == transactionId) return
+        viewModelScope.launch {
+            val transaction = getTransactionById(transactionId) ?: return@launch
+            form.update {
+                it.copy(
+                    id = transaction.id,
+                    amountInput = transaction.amount.toInput(),
+                    type = transaction.type,
+                    selectedCategory = transaction.category,
+                    date = transaction.date,
+                    note = transaction.note,
+                    error = null
+                )
+            }
         }
     }
 
@@ -93,16 +119,16 @@ class AddTransactionViewModel @Inject constructor(
             form.update { it.copy(error = AddTransactionError.INVALID_CATEGORY) }
             return
         }
+        val transaction = Transaction(
+            id = state.id,
+            amount = amount,
+            type = state.type,
+            category = category,
+            date = state.date,
+            note = state.note.trim()
+        )
         viewModelScope.launch {
-            val result = addTransaction(
-                Transaction(
-                    amount = amount,
-                    type = state.type,
-                    category = category,
-                    date = state.date,
-                    note = state.note.trim()
-                )
-            )
+            val result = if (state.id == 0L) addTransaction(transaction) else updateTransaction(transaction)
             when (result) {
                 TransactionWriteResult.Success -> form.update { it.copy(isSaved = true) }
                 TransactionWriteResult.InvalidAmount ->
@@ -112,6 +138,7 @@ class AddTransactionViewModel @Inject constructor(
     }
 
     private data class FormState(
+        val id: Long = 0,
         val amountInput: String = "",
         val type: TransactionType = TransactionType.EXPENSE,
         val selectedCategory: Category? = null,
@@ -125,3 +152,8 @@ class AddTransactionViewModel @Inject constructor(
         const val STOP_TIMEOUT_MILLIS = 5_000L
     }
 }
+
+private const val FRACTION_DIGITS = 2
+
+/** Renders an exact [Money] back into an editable plain-decimal string (e.g. `4550` → "45.50"). */
+private fun Money.toInput(): String = BigDecimal.valueOf(minorUnits).movePointLeft(FRACTION_DIGITS).toPlainString()

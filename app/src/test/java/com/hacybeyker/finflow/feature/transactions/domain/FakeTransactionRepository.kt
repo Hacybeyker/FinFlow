@@ -17,6 +17,8 @@ class FakeTransactionRepository(initial: List<Transaction> = emptyList()) : Tran
     override fun observeByMonth(month: YearMonth): Flow<List<Transaction>> =
         transactions.map { list -> list.filter { YearMonth.from(it.date) == month } }
 
+    override suspend fun getById(id: Long): Transaction? = transactions.value.firstOrNull { it.id == id }
+
     override suspend fun add(transaction: Transaction) {
         transactions.value = transactions.value + transaction
     }

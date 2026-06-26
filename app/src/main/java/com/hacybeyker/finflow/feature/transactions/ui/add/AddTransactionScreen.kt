@@ -57,9 +57,14 @@ import java.time.format.FormatStyle
 fun AddTransactionScreen(
     onDone: () -> Unit,
     modifier: Modifier = Modifier,
+    transactionId: Long? = null,
     viewModel: AddTransactionViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+    LaunchedEffect(transactionId) {
+        if (transactionId != null) viewModel.onIntent(AddTransactionIntent.Load(transactionId))
+    }
 
     LaunchedEffect(uiState.isSaved) {
         if (uiState.isSaved) onDone()
@@ -85,7 +90,9 @@ private fun AddTransactionContent(
         modifier = modifier.fillMaxSize(),
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.add_title)) },
+                title = {
+                    Text(stringResource(if (uiState.isEditing) R.string.edit_title else R.string.add_title))
+                },
                 navigationIcon = {
                     IconButton(onClick = onCancel) {
                         Icon(
@@ -163,7 +170,7 @@ private fun AddTransactionForm(
             onClick = { onIntent(AddTransactionIntent.Save) },
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text(stringResource(R.string.add_save))
+            Text(stringResource(if (uiState.isEditing) R.string.edit_save else R.string.add_save))
         }
     }
 }

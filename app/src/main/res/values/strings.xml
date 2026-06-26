@@ -6,6 +6,9 @@
     <string name="home_empty">Aún no tienes movimientos este mes</string>
     <string name="home_add_transaction">Agregar movimiento</string>
     <string name="home_manage_categories">Categorías</string>
+    <string name="home_delete">Borrar</string>
+    <string name="home_deleted">Movimiento borrado</string>
+    <string name="home_undo">Deshacer</string>
 
     <!-- Categories -->
     <string name="categories_title">Categorías</string>
@@ -19,8 +22,10 @@
     <string name="categories_error_invalid">Ingresa un nombre</string>
     <string name="categories_error_duplicate">Ya existe una categoría con ese nombre</string>
 
-    <!-- Add transaction -->
+    <!-- Add / edit transaction -->
     <string name="add_title">Nuevo movimiento</string>
+    <string name="edit_title">Editar movimiento</string>
+    <string name="edit_save">Guardar cambios</string>
     <string name="add_amount_label">Importe</string>
     <string name="add_type_income">Ingreso</string>
     <string name="add_type_expense">Gasto</string>

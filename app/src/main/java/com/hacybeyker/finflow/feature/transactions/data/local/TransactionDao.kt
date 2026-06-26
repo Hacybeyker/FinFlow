@@ -22,6 +22,12 @@ interface TransactionDao {
     )
     fun observeByEpochDayRange(startEpochDay: Long, endEpochDay: Long): Flow<List<TransactionWithCategory>>
 
+    @Query(
+        "SELECT t.*, c.name AS categoryName FROM transactions t JOIN categories c ON t.categoryId = c.id " +
+            "WHERE t.id = :id"
+    )
+    suspend fun getById(id: Long): TransactionWithCategory?
+
     @Insert
     suspend fun insert(entity: TransactionEntity)
 

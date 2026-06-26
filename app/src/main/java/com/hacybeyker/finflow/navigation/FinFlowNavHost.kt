@@ -25,11 +25,17 @@ fun FinFlowNavHost(modifier: Modifier = Modifier) {
         entryProvider = entryProvider {
             entry<Home> {
                 HomeScreen(
-                    onAddTransaction = { backStack.add(AddTransaction) },
-                    onManageCategories = { backStack.add(Categories) }
+                    onAddTransaction = { backStack.add(AddTransaction()) },
+                    onManageCategories = { backStack.add(Categories) },
+                    onEditTransaction = { id -> backStack.add(AddTransaction(transactionId = id)) }
                 )
             }
-            entry<AddTransaction> { AddTransactionScreen(onDone = { backStack.removeLastOrNull() }) }
+            entry<AddTransaction> { key ->
+                AddTransactionScreen(
+                    onDone = { backStack.removeLastOrNull() },
+                    transactionId = key.transactionId
+                )
+            }
             entry<Categories> { CategoriesScreen(onBack = { backStack.removeLastOrNull() }) }
         }
     )

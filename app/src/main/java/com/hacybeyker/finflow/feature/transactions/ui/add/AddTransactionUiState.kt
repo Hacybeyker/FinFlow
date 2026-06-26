@@ -12,6 +12,7 @@ data class AddTransactionUiState(
     val date: LocalDate = LocalDate.now(),
     val note: String = "",
     val error: AddTransactionError? = null,
+    val isEditing: Boolean = false,
     val isSaved: Boolean = false
 )
 
@@ -21,6 +22,7 @@ enum class AddTransactionError {
 }
 
 sealed interface AddTransactionIntent {
+    data class Load(val transactionId: Long) : AddTransactionIntent
     data class AmountChanged(val value: String) : AddTransactionIntent
     data class TypeChanged(val type: TransactionType) : AddTransactionIntent
     data class CategorySelected(val category: Category) : AddTransactionIntent
