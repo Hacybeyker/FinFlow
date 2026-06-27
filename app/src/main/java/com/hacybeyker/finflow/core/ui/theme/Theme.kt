@@ -88,9 +88,11 @@ fun FinFlowTheme(
         else -> LightColorScheme
     }
     val financeColors = if (darkTheme) DarkFinanceColors else LightFinanceColors
+    val chartColors = if (darkTheme) DarkChartColors else LightChartColors
 
     CompositionLocalProvider(
         LocalFinanceColors provides financeColors,
+        LocalChartColors provides chartColors,
         LocalSpacing provides Spacing(),
         LocalMoneyFormatter provides MoneyFormatter()
     ) {

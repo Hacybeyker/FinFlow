@@ -93,3 +93,26 @@ val OnExpenseDark = Color(0xFF5F1414)
 val ExpenseContainerDark = Color(0xFF8C2A29)
 val OnExpenseContainerDark = Color(0xFFFFDAD6)
 // endregion
+
+// region Categorical · Chart slices
+// A qualitative palette for category breakdowns (donut slices). Hues are muted to sit calmly next to
+// the indigo brand and chosen to stay distinguishable from one another; income/expense semantics are
+// NOT in here (the donut shows where money went, not its sign). Cycled by slice index, so order is
+// stable. Light tones are mid-saturation on a light surface; dark tones are lifted for a dark surface.
+val ChartSliceLight = listOf(
+    Color(0xFF5161C9), // indigo
+    Color(0xFF3F8A8B), // teal
+    Color(0xFFC0852E), // amber
+    Color(0xFFB85C8A), // rose
+    Color(0xFF5B8C4F), // green
+    Color(0xFF8A6FB0) // violet
+)
+val ChartSliceDark = listOf(
+    Color(0xFF9FA8F0),
+    Color(0xFF7FC9CA),
+    Color(0xFFE5C07B),
+    Color(0xFFE89BC0),
+    Color(0xFFA6CF9A),
+    Color(0xFFC3A8E0)
+)
+// endregion

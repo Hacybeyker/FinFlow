@@ -9,6 +9,17 @@
     <string name="home_delete">Borrar</string>
     <string name="home_deleted">Movimiento borrado</string>
     <string name="home_undo">Deshacer</string>
+    <string name="home_charts">Gráficos</string>
+
+    <!-- Charts -->
+    <string name="charts_title">Gráficos</string>
+    <string name="charts_back">Volver</string>
+    <string name="charts_spending_title">Gasto por categoría</string>
+    <string name="charts_spending_empty">Sin gastos este mes</string>
+    <string name="charts_monthly_title">Ingresos y gastos por mes</string>
+    <string name="charts_total_spent">Gastado</string>
+    <string name="charts_legend_income">Ingresos</string>
+    <string name="charts_legend_expense">Gastos</string>
 
     <!-- Categories -->
     <string name="categories_title">Categorías</string>

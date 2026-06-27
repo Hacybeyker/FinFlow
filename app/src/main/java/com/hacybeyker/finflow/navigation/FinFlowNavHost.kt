@@ -7,6 +7,7 @@ import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
+import com.hacybeyker.finflow.feature.charts.ui.ChartsScreen
 import com.hacybeyker.finflow.feature.transactions.ui.add.AddTransactionScreen
 import com.hacybeyker.finflow.feature.transactions.ui.categories.CategoriesScreen
 import com.hacybeyker.finflow.feature.transactions.ui.home.HomeScreen
@@ -27,7 +28,8 @@ fun FinFlowNavHost(modifier: Modifier = Modifier) {
                 HomeScreen(
                     onAddTransaction = { backStack.add(AddTransaction()) },
                     onManageCategories = { backStack.add(Categories) },
-                    onEditTransaction = { id -> backStack.add(AddTransaction(transactionId = id)) }
+                    onEditTransaction = { id -> backStack.add(AddTransaction(transactionId = id)) },
+                    onShowCharts = { backStack.add(Charts) }
                 )
             }
             entry<AddTransaction> { key ->
@@ -37,6 +39,7 @@ fun FinFlowNavHost(modifier: Modifier = Modifier) {
                 )
             }
             entry<Categories> { CategoriesScreen(onBack = { backStack.removeLastOrNull() }) }
+            entry<Charts> { ChartsScreen(onBack = { backStack.removeLastOrNull() }) }
         }
     )
 }

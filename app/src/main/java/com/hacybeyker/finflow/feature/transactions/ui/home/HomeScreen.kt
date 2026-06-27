@@ -50,6 +50,7 @@ import com.hacybeyker.finflow.core.domain.TransactionType
 import com.hacybeyker.finflow.core.ui.components.AmountText
 import com.hacybeyker.finflow.core.ui.theme.FinFlowTheme
 import com.hacybeyker.finflow.core.ui.theme.spacing
+import com.hacybeyker.finflow.feature.charts.ui.ChartsBarIcon
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
@@ -60,6 +61,7 @@ fun HomeScreen(
     onAddTransaction: () -> Unit,
     onManageCategories: () -> Unit,
     onEditTransaction: (Long) -> Unit,
+    onShowCharts: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: HomeViewModel = hiltViewModel()
 ) {
@@ -74,6 +76,7 @@ fun HomeScreen(
         snackbarHostState = snackbarHostState,
         onAddTransaction = onAddTransaction,
         onManageCategories = onManageCategories,
+        onShowCharts = onShowCharts,
         onEditTransaction = onEditTransaction,
         onDeleteTransaction = { transaction ->
             viewModel.delete(transaction)
@@ -93,6 +96,7 @@ private fun HomeContent(
     snackbarHostState: SnackbarHostState,
     onAddTransaction: () -> Unit,
     onManageCategories: () -> Unit,
+    onShowCharts: () -> Unit,
     onEditTransaction: (Long) -> Unit,
     onDeleteTransaction: (Transaction) -> Unit,
     modifier: Modifier = Modifier
@@ -104,6 +108,12 @@ private fun HomeContent(
             TopAppBar(
                 title = { Text(stringResource(R.string.app_name)) },
                 actions = {
+                    IconButton(onClick = onShowCharts) {
+                        Icon(
+                            ChartsBarIcon,
+                            contentDescription = stringResource(R.string.home_charts)
+                        )
+                    }
                     IconButton(onClick = onManageCategories) {
                         Icon(
                             Icons.AutoMirrored.Filled.List,
@@ -287,6 +297,7 @@ private fun HomeContentPreview() {
             snackbarHostState = remember { SnackbarHostState() },
             onAddTransaction = {},
             onManageCategories = {},
+            onShowCharts = {},
             onEditTransaction = {},
             onDeleteTransaction = {}
         )
@@ -302,6 +313,7 @@ private fun HomeEmptyPreview() {
             snackbarHostState = remember { SnackbarHostState() },
             onAddTransaction = {},
             onManageCategories = {},
+            onShowCharts = {},
             onEditTransaction = {},
             onDeleteTransaction = {}
         )

@@ -79,6 +79,22 @@ detail, charts, widget), a negative one coral.
 | `expense` | Negative amounts, expense emphasis | `#B3403E` | `#FFB3AD` |
 | `expenseContainer` | Expense chips/backgrounds | `#FFDAD6` | `#8C2A29` |
 
+### Categorical chart palette (`MaterialTheme.chartColors`)
+
+A qualitative scale Material 3 does not provide, for category breakdowns (donut slices). Hues are
+muted to sit next to the indigo brand and stay mutually distinguishable; they carry **no** income/
+expense meaning. Cycled by slice index via `chartColors.colorAt(index)` — never hardcode a slice
+color. Defined in `ui/theme/Color.kt` (`ChartSliceLight` / `ChartSliceDark`).
+
+| # | Light | Dark | Hue |
+|---|-------|------|-----|
+| 0 | `#5161C9` | `#9FA8F0` | indigo |
+| 1 | `#3F8A8B` | `#7FC9CA` | teal |
+| 2 | `#C0852E` | `#E5C07B` | amber |
+| 3 | `#B85C8A` | `#E89BC0` | rose |
+| 4 | `#5B8C4F` | `#A6CF9A` | green |
+| 5 | `#8A6FB0` | `#C3A8E0` | violet |
+
 ### Dynamic color decision
 
 `FinFlowTheme(dynamicColor = false)` **by default**, so the brand palette is consistent on every
