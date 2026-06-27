@@ -8,6 +8,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 > **Change types:** `Added` (feature), `Fixed` (fix), `Changed` / `Enhancement` (improvement),
 > `Deprecated`, `Removed`, `Security`.
 
+## [0.4.0] - 2026-06-26
+
+### Added
+- **Categories feature:** a `categories` table with its own data layer (`CategoryEntity`/`CategoryDao`/
+  mapper + `RoomCategoryRepository`) and domain (`CategoryRepository` + `GetCategories`, `AddCategory`,
+  `RenameCategory`, `DeleteCategory` use cases, with a `CategorySaveResult` sealed outcome covering
+  Success/Duplicate/InvalidName), all unit-tested.
+- **Category management screen** (MVI): list, create, rename (dialog) and delete (with confirmation),
+  reachable from an action in the Home top bar.
+- **Edit a transaction:** tapping a Home row opens the Add screen reused in edit mode (prefilled, titled
+  "Editar movimiento" / "Guardar cambios"). The `AddTransaction` nav key now carries an optional
+  `transactionId`; the ViewModel branches between add and update on the row id. Backed by
+  `UpdateTransactionUseCase`, `GetTransactionByIdUseCase` and a `getById` DAO JOIN query.
+- **Delete a transaction:** swipe a Home row left to delete it (`DeleteTransactionUseCase`), with a
+  snackbar that **undoes** the delete by re-inserting the row with its original id.
+
+### Changed
+- **Normalized the category relation (DB v3):** transactions now reference a category through a
+  `categoryId` **foreign key** (`ON DELETE CASCADE`, indexed) instead of the denormalized `categoryName`
+  snapshot; the name is resolved on read with a JOIN via the new `TransactionWithCategory` relation.
+  Non-destructive `MIGRATION_2_3` re-seeds missing names, matches each snapshot to a category id and
+  rebuilds the table (SQLite can't `ALTER` to add a FK). Schema v3 exported to `app/schemas/`.
+- Database schema bumped **v1 → v2 → v3** with hand-written, non-destructive migrations
+  (`MIGRATION_1_2` creates and seeds the `categories` table).
+
 ## [0.3.0] - 2026-06-25
 
 ### Added
