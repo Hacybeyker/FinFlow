@@ -1,6 +1,6 @@
 package com.hacybeyker.finflow.feature.transactions.data
 
-import com.hacybeyker.finflow.feature.transactions.domain.TransactionRepository
+import com.hacybeyker.finflow.core.domain.TransactionRepository
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn

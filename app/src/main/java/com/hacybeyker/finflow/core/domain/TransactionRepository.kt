@@ -1,4 +1,4 @@
-package com.hacybeyker.finflow.feature.transactions.domain
+package com.hacybeyker.finflow.core.domain
 
 import java.time.YearMonth
 import kotlinx.coroutines.flow.Flow

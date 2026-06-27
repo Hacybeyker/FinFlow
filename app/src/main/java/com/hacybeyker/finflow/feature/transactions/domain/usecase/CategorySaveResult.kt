@@ -1,6 +1,6 @@
 package com.hacybeyker.finflow.feature.transactions.domain.usecase
 
-import com.hacybeyker.finflow.feature.transactions.domain.Category
+import com.hacybeyker.finflow.core.domain.Category
 
 /** Outcome of creating or renaming a category (shared by add and rename). */
 sealed interface CategorySaveResult {

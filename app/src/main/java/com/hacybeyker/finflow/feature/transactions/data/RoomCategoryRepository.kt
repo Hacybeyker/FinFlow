@@ -1,8 +1,8 @@
 package com.hacybeyker.finflow.feature.transactions.data
 
+import com.hacybeyker.finflow.core.domain.Category
 import com.hacybeyker.finflow.feature.transactions.data.local.CategoryDao
 import com.hacybeyker.finflow.feature.transactions.data.local.CategoryEntity
-import com.hacybeyker.finflow.feature.transactions.domain.Category
 import com.hacybeyker.finflow.feature.transactions.domain.CategoryRepository
 import javax.inject.Inject
 import kotlinx.coroutines.flow.Flow

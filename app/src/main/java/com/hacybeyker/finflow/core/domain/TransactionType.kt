@@ -1,4 +1,4 @@
-package com.hacybeyker.finflow.feature.transactions.domain
+package com.hacybeyker.finflow.core.domain
 
 enum class TransactionType {
     INCOME,

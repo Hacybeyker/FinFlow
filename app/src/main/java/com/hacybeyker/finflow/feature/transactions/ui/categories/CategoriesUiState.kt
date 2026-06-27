@@ -1,6 +1,6 @@
 package com.hacybeyker.finflow.feature.transactions.ui.categories
 
-import com.hacybeyker.finflow.feature.transactions.domain.Category
+import com.hacybeyker.finflow.core.domain.Category
 
 data class CategoriesUiState(
     val categories: List<Category> = emptyList(),

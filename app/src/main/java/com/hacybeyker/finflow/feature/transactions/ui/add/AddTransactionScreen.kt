@@ -43,10 +43,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.hacybeyker.finflow.R
+import com.hacybeyker.finflow.core.domain.Category
+import com.hacybeyker.finflow.core.domain.TransactionType
 import com.hacybeyker.finflow.core.ui.theme.FinFlowTheme
 import com.hacybeyker.finflow.core.ui.theme.spacing
-import com.hacybeyker.finflow.feature.transactions.domain.Category
-import com.hacybeyker.finflow.feature.transactions.domain.TransactionType
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneOffset

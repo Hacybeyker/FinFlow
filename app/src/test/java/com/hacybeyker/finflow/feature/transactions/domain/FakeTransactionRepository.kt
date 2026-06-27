@@ -1,6 +1,10 @@
 package com.hacybeyker.finflow.feature.transactions.domain
 
+import com.hacybeyker.finflow.core.domain.Category
 import com.hacybeyker.finflow.core.domain.Money
+import com.hacybeyker.finflow.core.domain.Transaction
+import com.hacybeyker.finflow.core.domain.TransactionRepository
+import com.hacybeyker.finflow.core.domain.TransactionType
 import java.time.LocalDate
 import java.time.YearMonth
 import kotlinx.coroutines.flow.Flow

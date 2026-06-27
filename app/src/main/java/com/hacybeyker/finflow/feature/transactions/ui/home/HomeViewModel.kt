@@ -3,7 +3,7 @@ package com.hacybeyker.finflow.feature.transactions.ui.home
 import androidx.compose.runtime.Stable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.hacybeyker.finflow.feature.transactions.domain.Transaction
+import com.hacybeyker.finflow.core.domain.Transaction
 import com.hacybeyker.finflow.feature.transactions.domain.usecase.AddTransactionUseCase
 import com.hacybeyker.finflow.feature.transactions.domain.usecase.DeleteTransactionUseCase
 import com.hacybeyker.finflow.feature.transactions.domain.usecase.GetBalanceUseCase

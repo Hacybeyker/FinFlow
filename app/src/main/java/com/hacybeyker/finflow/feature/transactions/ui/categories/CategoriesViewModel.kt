@@ -3,7 +3,7 @@ package com.hacybeyker.finflow.feature.transactions.ui.categories
 import androidx.compose.runtime.Stable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.hacybeyker.finflow.feature.transactions.domain.Category
+import com.hacybeyker.finflow.core.domain.Category
 import com.hacybeyker.finflow.feature.transactions.domain.usecase.AddCategoryUseCase
 import com.hacybeyker.finflow.feature.transactions.domain.usecase.CategorySaveResult
 import com.hacybeyker.finflow.feature.transactions.domain.usecase.DeleteCategoryUseCase

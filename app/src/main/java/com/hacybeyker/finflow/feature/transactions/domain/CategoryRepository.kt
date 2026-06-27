@@ -1,5 +1,6 @@
 package com.hacybeyker.finflow.feature.transactions.domain
 
+import com.hacybeyker.finflow.core.domain.Category
 import kotlinx.coroutines.flow.Flow
 
 interface CategoryRepository {

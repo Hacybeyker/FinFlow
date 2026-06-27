@@ -1,9 +1,9 @@
 package com.hacybeyker.finflow.feature.transactions.data
 
+import com.hacybeyker.finflow.core.domain.Transaction
+import com.hacybeyker.finflow.core.domain.TransactionRepository
 import com.hacybeyker.finflow.feature.transactions.data.local.TransactionDao
 import com.hacybeyker.finflow.feature.transactions.data.local.TransactionWithCategory
-import com.hacybeyker.finflow.feature.transactions.domain.Transaction
-import com.hacybeyker.finflow.feature.transactions.domain.TransactionRepository
 import java.time.YearMonth
 import javax.inject.Inject
 import kotlinx.coroutines.flow.Flow

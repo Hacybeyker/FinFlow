@@ -1,7 +1,7 @@
 package com.hacybeyker.finflow.feature.transactions.data
 
+import com.hacybeyker.finflow.core.domain.Category
 import com.hacybeyker.finflow.feature.transactions.data.local.CategoryEntity
-import com.hacybeyker.finflow.feature.transactions.domain.Category
 
 fun CategoryEntity.toDomain(): Category = Category(id = id, name = name)
 

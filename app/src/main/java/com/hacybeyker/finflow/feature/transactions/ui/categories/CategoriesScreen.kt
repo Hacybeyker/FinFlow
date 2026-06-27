@@ -38,9 +38,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.hacybeyker.finflow.R
+import com.hacybeyker.finflow.core.domain.Category
 import com.hacybeyker.finflow.core.ui.theme.FinFlowTheme
 import com.hacybeyker.finflow.core.ui.theme.spacing
-import com.hacybeyker.finflow.feature.transactions.domain.Category
 
 @Composable
 fun CategoriesScreen(

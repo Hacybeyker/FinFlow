@@ -1,4 +1,4 @@
-package com.hacybeyker.finflow.feature.transactions.domain
+package com.hacybeyker.finflow.core.domain
 
 /**
  * A user-defined grouping for transactions (e.g. "Groceries", "Salary").

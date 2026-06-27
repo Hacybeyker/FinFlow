@@ -1,7 +1,7 @@
 package com.hacybeyker.finflow.feature.transactions.domain.usecase
 
 import com.hacybeyker.finflow.core.domain.Money
-import com.hacybeyker.finflow.feature.transactions.domain.TransactionRepository
+import com.hacybeyker.finflow.core.domain.TransactionRepository
 import javax.inject.Inject
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map

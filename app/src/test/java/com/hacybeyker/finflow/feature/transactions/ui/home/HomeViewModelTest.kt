@@ -2,9 +2,9 @@ package com.hacybeyker.finflow.feature.transactions.ui.home
 
 import app.cash.turbine.test
 import com.hacybeyker.finflow.core.domain.Money
+import com.hacybeyker.finflow.core.domain.TransactionType
 import com.hacybeyker.finflow.core.test.MainDispatcherRule
 import com.hacybeyker.finflow.feature.transactions.domain.FakeTransactionRepository
-import com.hacybeyker.finflow.feature.transactions.domain.TransactionType
 import com.hacybeyker.finflow.feature.transactions.domain.transaction
 import com.hacybeyker.finflow.feature.transactions.domain.usecase.AddTransactionUseCase
 import com.hacybeyker.finflow.feature.transactions.domain.usecase.DeleteTransactionUseCase

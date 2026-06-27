@@ -1,11 +1,11 @@
 package com.hacybeyker.finflow.feature.transactions.data
 
+import com.hacybeyker.finflow.core.domain.Category
 import com.hacybeyker.finflow.core.domain.Money
+import com.hacybeyker.finflow.core.domain.Transaction
+import com.hacybeyker.finflow.core.domain.TransactionType
 import com.hacybeyker.finflow.feature.transactions.data.local.TransactionEntity
 import com.hacybeyker.finflow.feature.transactions.data.local.TransactionWithCategory
-import com.hacybeyker.finflow.feature.transactions.domain.Category
-import com.hacybeyker.finflow.feature.transactions.domain.Transaction
-import com.hacybeyker.finflow.feature.transactions.domain.TransactionType
 import java.time.LocalDate
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertThrows

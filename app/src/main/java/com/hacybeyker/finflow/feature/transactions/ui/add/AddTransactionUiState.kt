@@ -1,7 +1,7 @@
 package com.hacybeyker.finflow.feature.transactions.ui.add
 
-import com.hacybeyker.finflow.feature.transactions.domain.Category
-import com.hacybeyker.finflow.feature.transactions.domain.TransactionType
+import com.hacybeyker.finflow.core.domain.Category
+import com.hacybeyker.finflow.core.domain.TransactionType
 import java.time.LocalDate
 
 data class AddTransactionUiState(
