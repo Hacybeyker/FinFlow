@@ -8,6 +8,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 > **Change types:** `Added` (feature), `Fixed` (fix), `Changed` / `Enhancement` (improvement),
 > `Deprecated`, `Removed`, `Security`.
 
+## [0.5.0] - 2026-06-27
+
+### Added
+- **Charts feature:** a `charts` screen reachable from a new Home top-bar action, with two views over
+  the existing transactions (no new tables): a **spending-by-category donut** for the current month and
+  a **monthly income vs. expense bar chart** over a trailing 6-month window.
+- **Charts domain:** `GetSpendingByCategoryUseCase` (current-month expenses grouped by category, summed,
+  sorted descending) and `GetMonthlyTotalsUseCase` (income/expense per month with empty months as zero),
+  with their `CategorySpending` / `MonthlyTotal` models, all unit-tested.
+- **Custom Canvas rendering (no chart library):** the donut is drawn with `drawArc` as a stroked ring;
+  the bars use plain layout (`Box` + `fillMaxHeight`). Both **animate on load** — the donut reveals
+  clockwise via a shared `0→360°` budget and the bars grow from the baseline — and re-animate when data
+  changes.
+- **Categorical chart palette** added to the theme (`MaterialTheme.chartColors`, light/dark) for donut
+  slices, documented in `DESIGN.md`; plus a hand-built bar-chart toolbar icon to avoid pulling in
+  `material-icons-extended`.
+
 ## [0.4.0] - 2026-06-26
 
 ### Added
