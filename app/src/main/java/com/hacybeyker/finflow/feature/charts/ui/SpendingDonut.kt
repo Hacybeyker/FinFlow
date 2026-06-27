@@ -1,5 +1,7 @@
 package com.hacybeyker.finflow.feature.charts.ui
 
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -14,6 +16,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -70,24 +74,33 @@ fun SpendingDonut(spending: List<CategorySpending>, modifier: Modifier = Modifie
 @Composable
 private fun DonutRing(values: List<Long>, colors: List<Color>, modifier: Modifier = Modifier) {
     val total = values.sum().coerceAtLeast(1L)
+    // Reveal the ring clockwise on first show / when the data changes: a single 0→360° budget that we
+    // hand out to the slices in order, so the animation is one sweep, not each slice racing on its own.
+    val sweepProgress = remember(values) { Animatable(0f) }
+    LaunchedEffect(values) { sweepProgress.animateTo(FULL_CIRCLE, tween(SWEEP_DURATION_MILLIS)) }
+
     Canvas(modifier = modifier) {
         val thickness = size.minDimension * RING_THICKNESS_FRACTION
         val diameter = size.minDimension - thickness
         val topLeft = Offset((size.width - diameter) / 2f, (size.height - diameter) / 2f)
         val arcSize = Size(diameter, diameter)
-        var startAngle = START_ANGLE
+        val budget = sweepProgress.value
+        var cumulative = 0f
         values.forEachIndexed { index, value ->
-            val sweep = FULL_CIRCLE * (value.toFloat() / total)
-            drawArc(
-                color = colors[index],
-                startAngle = startAngle,
-                sweepAngle = sweep - SLICE_GAP_DEGREES,
-                useCenter = false,
-                topLeft = topLeft,
-                size = arcSize,
-                style = Stroke(width = thickness)
-            )
-            startAngle += sweep
+            val slice = FULL_CIRCLE * (value.toFloat() / total)
+            val drawn = (budget - cumulative).coerceIn(0f, slice)
+            if (drawn > 0f) {
+                drawArc(
+                    color = colors[index],
+                    startAngle = START_ANGLE + cumulative,
+                    sweepAngle = (drawn - SLICE_GAP_DEGREES).coerceAtLeast(0f),
+                    useCenter = false,
+                    topLeft = topLeft,
+                    size = arcSize,
+                    style = Stroke(width = thickness)
+                )
+            }
+            cumulative += slice
         }
     }
 }
@@ -123,4 +136,5 @@ private const val FULL_CIRCLE = 360f
 
 /** A hair of background between slices so adjacent colors don't blur together. */
 private const val SLICE_GAP_DEGREES = 2f
+private const val SWEEP_DURATION_MILLIS = 700
 private const val SWATCH_SIZE = 12
