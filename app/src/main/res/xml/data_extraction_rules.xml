@@ -1,19 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?><!--
-   Sample data extraction rules file; uncomment and customize as necessary.
-   See https://developer.android.com/about/versions/12/backup-restore#xml-changes
-   for details.
+   Applies to devices on API 31+ (older devices read backup_rules.xml).
+
+   The SQLCipher database and the encrypted prefs holding its passphrase are excluded from both
+   cloud backup and device-to-device transfer: they are only decryptable with the Android Keystore
+   MasterKey of THIS device, which never leaves it, so a restored/transferred copy is unreadable
+   and would crash the app at startup.
 -->
 <data-extraction-rules>
     <cloud-backup>
-        <!-- TODO: Use <include> and <exclude> to control what is backed up.
-        <include .../>
-        <exclude .../>
-        -->
+        <exclude domain="database" path="finflow.db" />
+        <exclude domain="database" path="finflow.db-wal" />
+        <exclude domain="database" path="finflow.db-shm" />
+        <exclude domain="sharedpref" path="finflow_secure_prefs.xml" />
     </cloud-backup>
-    <!--
     <device-transfer>
-        <include .../>
-        <exclude .../>
+        <exclude domain="database" path="finflow.db" />
+        <exclude domain="database" path="finflow.db-wal" />
+        <exclude domain="database" path="finflow.db-shm" />
+        <exclude domain="sharedpref" path="finflow_secure_prefs.xml" />
     </device-transfer>
-    -->
 </data-extraction-rules>

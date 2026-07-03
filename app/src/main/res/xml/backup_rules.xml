@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?><!--
-   Sample backup rules file; uncomment and customize as necessary.
-   See https://developer.android.com/guide/topics/data/autobackup
-   for details.
-   Note: This file is ignored for devices older than API 31
-   See https://developer.android.com/about/versions/12/backup-restore
+   Applies to devices on API 30 and below (API 31+ reads data_extraction_rules.xml).
+
+   The SQLCipher database and the encrypted prefs holding its passphrase are excluded because they
+   are only decryptable with the Android Keystore MasterKey of THIS device: the Keystore never
+   leaves the device, so a restored copy is unreadable and would crash the app at startup.
 -->
 <full-backup-content>
-    <!--
-   <include domain="sharedpref" path="."/>
-   <exclude domain="sharedpref" path="device.xml"/>
--->
+    <exclude domain="database" path="finflow.db" />
+    <exclude domain="database" path="finflow.db-wal" />
+    <exclude domain="database" path="finflow.db-shm" />
+    <exclude domain="sharedpref" path="finflow_secure_prefs.xml" />
 </full-backup-content>

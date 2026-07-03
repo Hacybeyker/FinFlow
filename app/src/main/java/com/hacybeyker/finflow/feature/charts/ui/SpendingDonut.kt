@@ -85,15 +85,22 @@ private fun DonutRing(values: List<Long>, colors: List<Color>, modifier: Modifie
         val topLeft = Offset((size.width - diameter) / 2f, (size.height - diameter) / 2f)
         val arcSize = Size(diameter, diameter)
         val budget = sweepProgress.value
+        // A single slice is a closed ring: no neighbor to separate from, so no gap.
+        val gap = if (values.size > 1) SLICE_GAP_DEGREES else 0f
         var cumulative = 0f
         values.forEachIndexed { index, value ->
-            val slice = FULL_CIRCLE * (value.toFloat() / total)
+            // The last slice takes whatever remains so float rounding never leaves the ring open.
+            val slice = if (index == values.lastIndex) {
+                FULL_CIRCLE - cumulative
+            } else {
+                FULL_CIRCLE * (value.toFloat() / total)
+            }
             val drawn = (budget - cumulative).coerceIn(0f, slice)
             if (drawn > 0f) {
                 drawArc(
                     color = colors[index],
                     startAngle = START_ANGLE + cumulative,
-                    sweepAngle = (drawn - SLICE_GAP_DEGREES).coerceAtLeast(0f),
+                    sweepAngle = (drawn - gap).coerceAtLeast(0f),
                     useCenter = false,
                     topLeft = topLeft,
                     size = arcSize,

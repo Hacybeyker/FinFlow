@@ -8,6 +8,45 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 > **Change types:** `Added` (feature), `Fixed` (fix), `Changed` / `Enhancement` (improvement),
 > `Deprecated`, `Removed`, `Security`.
 
+## [0.6.0] - 2026-07-02
+
+### Added
+- **App lock (security feature):** the whole UI is now gated behind an `AppLock` composable backed by
+  `BiometricPrompt` — fingerprint (STRONG on API 30+, WEAK below where the STRONG+credential combo is
+  invalid) with device PIN/pattern fallback. It prompts automatically on launch, keeps an explicit
+  "Unlock" retry button on the lock screen, and **re-locks** when the app spends more than 30 s in
+  background (the grace period covers rotation, share sheets and quick app switches). The gate fails
+  open **only** when the device has no secure lock at all (`KeyguardManager.isDeviceSecure`) — transient
+  biometric states still show the prompt. Lock-state logic lives in `SecurityViewModel` (timestamps
+  passed as parameters, so it is unit-tested without mocking the clock).
+- **Crypto warmup at startup:** `FinFlowApplication` loads the native SQLCipher library and pre-creates
+  the Keystore-backed passphrase on `Dispatchers.IO`, so the first DAO injection on the main thread
+  finds everything ready (no startup jank). The database provider keeps an idempotent `loadLibrary`
+  call as a correctness safety net against the warmup race.
+
+### Changed
+- `MainActivity` extends `FragmentActivity` (a `ComponentActivity` subclass, so no Compose behavior
+  changes) because androidx.biometric hosts its prompt in a fragment and requires a `FragmentManager`.
+
+### Fixed
+- **Donut chart no longer leaves the ring open at 100%:** the 2° separation gap is only applied when
+  there is more than one slice, and the last slice now takes the exact remainder to 360° so accumulated
+  float rounding can never leave a visible notch.
+
+### Security
+- **Database encrypted at rest:** `finflow.db` is now a SQLCipher database (`sqlcipher-android` via
+  Room's `openHelperFactory`). The passphrase is a random 256-bit key owned by the new `DatabaseKey`,
+  stored in `EncryptedSharedPreferences` under an Android Keystore `MasterKey` — it never touches disk
+  in plaintext and never leaves the device. The key is deliberately **not** derived from biometrics
+  (re-enrolling a fingerprint cannot brick the data); the rollout recreates an empty encrypted DB with
+  a one-time purge of the pre-release plaintext file (no user-facing release ever shipped unencrypted
+  data). Writes the DB depends on (passphrase, purge flag) use synchronous `commit()` so a process
+  death can never strand an encrypted database without its key.
+- **Auto Backup exclusions:** `backup_rules.xml` (API ≤ 30) and `data_extraction_rules.xml` (API 31+,
+  cloud backup **and** device transfer) now exclude the encrypted database (with its `-wal`/`-shm`
+  files) and the encrypted prefs. The Keystore master key never leaves the device, so a restored copy
+  would be undecryptable and crashed the app at startup.
+
 ## [0.5.0] - 2026-06-27
 
 ### Added

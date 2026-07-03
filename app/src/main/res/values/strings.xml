@@ -11,6 +11,12 @@
     <string name="home_undo">Deshacer</string>
     <string name="home_charts">Gráficos</string>
 
+    <!-- Security / app lock -->
+    <string name="lock_title">Desbloquea FinFlow</string>
+    <string name="lock_subtitle">Confirma tu identidad para ver tus finanzas</string>
+    <string name="lock_locked_message">FinFlow está bloqueado</string>
+    <string name="lock_unlock_button">Desbloquear</string>
+
     <!-- Charts -->
     <string name="charts_title">Gráficos</string>
     <string name="charts_back">Volver</string>
