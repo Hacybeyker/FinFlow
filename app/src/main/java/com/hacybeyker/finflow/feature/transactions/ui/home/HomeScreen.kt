@@ -2,7 +2,6 @@ package com.hacybeyker.finflow.feature.transactions.ui.home
 
 import android.content.res.Configuration
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -12,14 +11,14 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -27,6 +26,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
+import androidx.compose.material3.Surface
 import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
@@ -38,7 +38,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -48,6 +50,7 @@ import com.hacybeyker.finflow.core.domain.Money
 import com.hacybeyker.finflow.core.domain.Transaction
 import com.hacybeyker.finflow.core.domain.TransactionType
 import com.hacybeyker.finflow.core.ui.components.AmountText
+import com.hacybeyker.finflow.core.ui.components.CategoryAvatar
 import com.hacybeyker.finflow.core.ui.theme.FinFlowTheme
 import com.hacybeyker.finflow.core.ui.theme.spacing
 import com.hacybeyker.finflow.feature.charts.ui.ChartsBarIcon
@@ -55,6 +58,9 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 import kotlinx.coroutines.launch
+
+/** Supporting text on the hero card: onPrimaryContainer softened just enough to build hierarchy. */
+private const val HERO_LABEL_ALPHA = 0.85f
 
 @Composable
 fun HomeScreen(
@@ -124,9 +130,13 @@ private fun HomeContent(
             )
         },
         floatingActionButton = {
-            FloatingActionButton(onClick = onAddTransaction) {
-                Icon(Icons.Default.Add, contentDescription = stringResource(R.string.home_add_transaction))
-            }
+            ExtendedFloatingActionButton(
+                onClick = onAddTransaction,
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary,
+                icon = { Icon(Icons.Default.Add, contentDescription = null) },
+                text = { Text(stringResource(R.string.home_add)) }
+            )
         }
     ) { innerPadding ->
         Column(
@@ -140,9 +150,7 @@ private fun HomeContent(
                 is HomeUiState.Content -> {
                     BalanceCard(balance = uiState.balance)
                     if (uiState.transactions.isEmpty()) {
-                        CenteredBox {
-                            Text(stringResource(R.string.home_empty), style = MaterialTheme.typography.bodyMedium)
-                        }
+                        EmptyState()
                     } else {
                         TransactionList(
                             transactions = uiState.transactions,
@@ -157,22 +165,39 @@ private fun HomeContent(
     }
 }
 
+/**
+ * Hero of the app: the balance on a solid `primaryContainer` card — the single loud element on the
+ * screen, so everything below stays quiet. Content is always `onPrimaryContainer` (the semantic
+ * green/coral would not pass contrast here), and the figure never wraps: it shrinks to fit one line.
+ */
 @Composable
 private fun BalanceCard(balance: Money, modifier: Modifier = Modifier) {
-    Card(modifier = modifier.fillMaxWidth()) {
-        Column(modifier = Modifier.padding(MaterialTheme.spacing.lg)) {
-            Text(
-                text = stringResource(R.string.home_balance_label),
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            AmountText(
-                money = balance,
-                style = MaterialTheme.typography.displaySmall,
-                showSign = false,
-                modifier = Modifier.padding(top = MaterialTheme.spacing.xs)
-            )
-        }
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .clip(MaterialTheme.shapes.large)
+            .background(MaterialTheme.colorScheme.primaryContainer)
+            .padding(MaterialTheme.spacing.lg)
+    ) {
+        Text(
+            text = stringResource(R.string.home_balance_label),
+            style = MaterialTheme.typography.labelLarge,
+            color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = HERO_LABEL_ALPHA)
+        )
+        AmountText(
+            money = balance,
+            style = MaterialTheme.typography.displaySmall,
+            showSign = false,
+            color = MaterialTheme.colorScheme.onPrimaryContainer,
+            maxLines = 1,
+            autoSize = TextAutoSize.StepBased(
+                minFontSize = MaterialTheme.typography.headlineSmall.fontSize,
+                maxFontSize = MaterialTheme.typography.displaySmall.fontSize
+            ),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = MaterialTheme.spacing.xs)
+        )
     }
 }
 
@@ -225,6 +250,7 @@ private fun DeleteBackground(modifier: Modifier = Modifier) {
     Box(
         modifier = modifier
             .fillMaxSize()
+            .clip(MaterialTheme.shapes.medium)
             .background(MaterialTheme.colorScheme.errorContainer)
             .padding(horizontal = MaterialTheme.spacing.lg),
         contentAlignment = Alignment.CenterEnd
@@ -240,23 +266,50 @@ private fun DeleteBackground(modifier: Modifier = Modifier) {
 @Composable
 private fun TransactionRow(transaction: Transaction, onClick: () -> Unit, modifier: Modifier = Modifier) {
     val dateFormatter = remember { DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM) }
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.background)
-            .clickable(onClick = onClick)
-            .padding(vertical = MaterialTheme.spacing.sm),
-        verticalAlignment = Alignment.CenterVertically
+    Surface(
+        onClick = onClick,
+        shape = MaterialTheme.shapes.medium,
+        color = MaterialTheme.colorScheme.surfaceContainerLow,
+        modifier = modifier.fillMaxWidth()
     ) {
-        Column(modifier = Modifier.weight(1f)) {
-            Text(transaction.category.name, style = MaterialTheme.typography.titleMedium)
-            Text(
-                text = transaction.date.format(dateFormatter),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+        Row(
+            modifier = Modifier.padding(MaterialTheme.spacing.md),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.md)
+        ) {
+            CategoryAvatar(category = transaction.category)
+            Column(modifier = Modifier.weight(1f)) {
+                Text(transaction.category.name, style = MaterialTheme.typography.titleMedium)
+                Text(
+                    text = transaction.date.format(dateFormatter),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            AmountText(money = transaction.signedAmount())
         }
-        AmountText(money = transaction.signedAmount())
+    }
+}
+
+@Composable
+private fun EmptyState(modifier: Modifier = Modifier) {
+    Column(
+        modifier = modifier.fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Text(
+            text = stringResource(R.string.home_empty),
+            style = MaterialTheme.typography.titleMedium,
+            textAlign = TextAlign.Center
+        )
+        Text(
+            text = stringResource(R.string.home_empty_hint),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.padding(top = MaterialTheme.spacing.sm)
+        )
     }
 }
 
@@ -276,7 +329,8 @@ private fun HomeContentPreview() {
     FinFlowTheme {
         HomeContent(
             uiState = HomeUiState.Content(
-                balance = Money(123456),
+                // Long figure on purpose: the hero amount must shrink to one line, never wrap.
+                balance = Money(12345678),
                 transactions = listOf(
                     Transaction(
                         1,

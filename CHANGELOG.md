@@ -8,6 +8,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 > **Change types:** `Added` (feature), `Fixed` (fix), `Changed` / `Enhancement` (improvement),
 > `Deprecated`, `Removed`, `Security`.
 
+## [0.7.0] - 2026-07-04
+
+### Added
+- **`CategoryAvatar` shared component** (`core/ui/components/`): the category initial on a 48dp
+  circle tinted with its `chartColors` accent (stable per category id). Decorative by design — the
+  category name always sits next to it.
+- **Tonal surface ladder** in the theme: violet-tinted `surfaceContainerLowest…Highest`,
+  `surfaceDim`/`surfaceBright` and `inverse*` roles, so cards and sheets separate from the
+  background without shadows.
+
+### Changed
+- **Visual redesign of the design system** (`DESIGN.md` + `core/ui/theme/`): the brand moves from
+  muted indigo to **electric violet** (`#6C3DF4`) with a teal accent over violet-tinted neutrals,
+  under a new principle — *one hero per screen* (a single loud element, everything else quiet).
+  Typography turns expressive (ExtraBold displays with −0.5 tracking, Bold headlines/titles;
+  body/label untouched) and the shape scale grows to 8/12/20/28/36. The chart palette's slice 0 now
+  echoes the brand violet and slice 5 becomes blue. **Income/expense semantics are unchanged** —
+  money colors don't rebrand.
+- **Home redesign:** the balance is now a hero card on solid `primaryContainer` with
+  `onPrimaryContainer` content (a `primary → tertiary` gradient was tried and reverted: it read
+  oddly and hurt perceived dark-mode legibility, even while passing AA numerically); transaction
+  rows become rounded `surfaceContainerLow` cards with a `CategoryAvatar` (the swipe-delete
+  background is clipped to the same shape); the FAB is a labeled extended FAB ("Agregar"); and the
+  empty state gains an actionable hint.
+- **Amounts never wrap:** `AmountText` gains `maxLines`/`autoSize` (plus a `color` override for
+  colored surfaces where the semantic green/coral would fail contrast); the hero balance shrinks
+  between `displaySmall` and `headlineSmall` to always stay on one line.
+- Launcher icon background is now the brand violet (it still shipped the Android template green);
+  `res/values/colors.xml` is emptied — colors live only in the Compose theme (single source of
+  truth, no parallel XML palette).
+
 ## [0.6.0] - 2026-07-02
 
 ### Added

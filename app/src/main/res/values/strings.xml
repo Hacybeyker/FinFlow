@@ -5,6 +5,8 @@
     <string name="home_balance_label">Balance</string>
     <string name="home_empty">Aún no tienes movimientos este mes</string>
     <string name="home_add_transaction">Agregar movimiento</string>
+    <string name="home_add">Agregar</string>
+    <string name="home_empty_hint">Toca «Agregar» para registrar tu primer ingreso o gasto</string>
     <string name="home_manage_categories">Categorías</string>
     <string name="home_delete">Borrar</string>
     <string name="home_deleted">Movimiento borrado</string>
