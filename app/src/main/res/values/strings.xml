@@ -12,6 +12,22 @@
     <string name="home_deleted">Movimiento borrado</string>
     <string name="home_undo">Deshacer</string>
     <string name="home_charts">Gráficos</string>
+    <string name="home_settings">Ajustes</string>
+
+    <!-- Settings -->
+    <string name="settings_title">Ajustes</string>
+    <string name="settings_back">Volver</string>
+    <string name="settings_section_appearance">Apariencia</string>
+    <string name="settings_theme_system">Según el sistema</string>
+    <string name="settings_theme_light">Claro</string>
+    <string name="settings_theme_dark">Oscuro</string>
+    <string name="settings_section_currency">Moneda</string>
+    <string name="settings_currency_device">Automática (moneda del dispositivo)</string>
+    <string name="settings_currency_hint">Cómo se muestran los importes en toda la app</string>
+    <string name="settings_currency_cancel">Cerrar</string>
+    <string name="settings_section_security">Seguridad</string>
+    <string name="settings_lock_title">Bloquear con biometría</string>
+    <string name="settings_lock_subtitle">Pide desbloquear al abrir la app</string>
 
     <!-- Security / app lock -->
     <string name="lock_title">Desbloquea FinFlow</string>

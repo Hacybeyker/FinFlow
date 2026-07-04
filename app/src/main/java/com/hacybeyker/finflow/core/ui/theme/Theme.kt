@@ -1,7 +1,10 @@
 package com.hacybeyker.finflow.core.ui.theme
 
 import android.os.Build
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.dynamicDarkColorScheme
@@ -9,6 +12,7 @@ import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import com.hacybeyker.finflow.core.ui.format.LocalMoneyFormatter
 import com.hacybeyker.finflow.core.ui.format.MoneyFormatter
@@ -88,14 +92,21 @@ private val DarkColorScheme = darkColorScheme(
 )
 
 /**
- * App theme. By default [dynamicColor] is OFF so FinFlow's calm brand palette stays consistent on
- * every device; dynamic color is still supported if opted in (e.g. from a user preference).
+ * App theme. By default [dynamicColor] is OFF so FinFlow's brand palette stays consistent on every
+ * device; dynamic color is still supported if opted in (e.g. from a user preference).
  * Income/expense semantics ([financeColors]) are always brand-defined and never follow the wallpaper.
+ *
+ * [moneyFormatter] feeds [LocalMoneyFormatter]; the app root passes one built from the user's
+ * currency preference so every amount in the tree re-formats when the setting changes.
+ *
+ * Switching [darkTheme] (from Settings or the system) **cross-fades** every color — scheme, finance
+ * and chart palettes animate together so no element snaps while its neighbors are mid-transition.
  */
 @Composable
 fun FinFlowTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     dynamicColor: Boolean = false,
+    moneyFormatter: MoneyFormatter = MoneyFormatter(),
     content: @Composable () -> Unit
 ) {
     val colorScheme = when {
@@ -111,16 +122,78 @@ fun FinFlowTheme(
     val chartColors = if (darkTheme) DarkChartColors else LightChartColors
 
     CompositionLocalProvider(
-        LocalFinanceColors provides financeColors,
-        LocalChartColors provides chartColors,
+        LocalFinanceColors provides financeColors.animated(),
+        LocalChartColors provides chartColors.animated(),
         LocalSpacing provides Spacing(),
-        LocalMoneyFormatter provides MoneyFormatter()
+        LocalMoneyFormatter provides moneyFormatter
     ) {
         MaterialTheme(
-            colorScheme = colorScheme,
+            colorScheme = colorScheme.animated(),
             typography = Typography,
             shapes = FinFlowShapes,
             content = content
         )
     }
 }
+
+/** Theme-switch cross-fade duration; long enough to read as intentional, short enough to feel snappy. */
+private const val THEME_TRANSITION_MILLIS = 500
+
+/** Animates towards [target] whenever it changes; starts at the target on first composition. */
+@Composable
+private fun animatedColor(target: Color): Color =
+    animateColorAsState(target, tween(THEME_TRANSITION_MILLIS), label = "themeColor").value
+
+@Composable
+private fun ColorScheme.animated(): ColorScheme = copy(
+    primary = animatedColor(primary),
+    onPrimary = animatedColor(onPrimary),
+    primaryContainer = animatedColor(primaryContainer),
+    onPrimaryContainer = animatedColor(onPrimaryContainer),
+    inversePrimary = animatedColor(inversePrimary),
+    secondary = animatedColor(secondary),
+    onSecondary = animatedColor(onSecondary),
+    secondaryContainer = animatedColor(secondaryContainer),
+    onSecondaryContainer = animatedColor(onSecondaryContainer),
+    tertiary = animatedColor(tertiary),
+    onTertiary = animatedColor(onTertiary),
+    tertiaryContainer = animatedColor(tertiaryContainer),
+    onTertiaryContainer = animatedColor(onTertiaryContainer),
+    background = animatedColor(background),
+    onBackground = animatedColor(onBackground),
+    surface = animatedColor(surface),
+    onSurface = animatedColor(onSurface),
+    surfaceVariant = animatedColor(surfaceVariant),
+    onSurfaceVariant = animatedColor(onSurfaceVariant),
+    surfaceTint = animatedColor(surfaceTint),
+    inverseSurface = animatedColor(inverseSurface),
+    inverseOnSurface = animatedColor(inverseOnSurface),
+    error = animatedColor(error),
+    onError = animatedColor(onError),
+    errorContainer = animatedColor(errorContainer),
+    onErrorContainer = animatedColor(onErrorContainer),
+    outline = animatedColor(outline),
+    outlineVariant = animatedColor(outlineVariant),
+    surfaceBright = animatedColor(surfaceBright),
+    surfaceDim = animatedColor(surfaceDim),
+    surfaceContainer = animatedColor(surfaceContainer),
+    surfaceContainerHigh = animatedColor(surfaceContainerHigh),
+    surfaceContainerHighest = animatedColor(surfaceContainerHighest),
+    surfaceContainerLow = animatedColor(surfaceContainerLow),
+    surfaceContainerLowest = animatedColor(surfaceContainerLowest)
+)
+
+@Composable
+private fun FinanceColors.animated(): FinanceColors = FinanceColors(
+    income = animatedColor(income),
+    onIncome = animatedColor(onIncome),
+    incomeContainer = animatedColor(incomeContainer),
+    onIncomeContainer = animatedColor(onIncomeContainer),
+    expense = animatedColor(expense),
+    onExpense = animatedColor(onExpense),
+    expenseContainer = animatedColor(expenseContainer),
+    onExpenseContainer = animatedColor(onExpenseContainer)
+)
+
+@Composable
+private fun ChartColors.animated(): ChartColors = ChartColors(slices.map { animatedColor(it) })

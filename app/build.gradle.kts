@@ -28,8 +28,8 @@ android {
         applicationId = "com.hacybeyker.finflow"
         minSdk = 26
         targetSdk = 36
-        versionCode = 6
-        versionName = "0.7.0"
+        versionCode = 7
+        versionName = "0.8.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -81,6 +81,7 @@ dependencies {
     implementation(libs.sqlcipher.android)
     implementation(libs.androidx.security.crypto)
     implementation(libs.androidx.biometric)
+    implementation(libs.androidx.datastore.preferences)
     ksp(libs.androidx.room.compiler)
     ksp(libs.hilt.compiler)
     annotationProcessor(libs.kotlin.metadata.jvm)

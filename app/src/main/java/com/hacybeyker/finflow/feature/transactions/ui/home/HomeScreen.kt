@@ -16,6 +16,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
@@ -68,6 +69,7 @@ fun HomeScreen(
     onManageCategories: () -> Unit,
     onEditTransaction: (Long) -> Unit,
     onShowCharts: () -> Unit,
+    onOpenSettings: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: HomeViewModel = hiltViewModel()
 ) {
@@ -83,6 +85,7 @@ fun HomeScreen(
         onAddTransaction = onAddTransaction,
         onManageCategories = onManageCategories,
         onShowCharts = onShowCharts,
+        onOpenSettings = onOpenSettings,
         onEditTransaction = onEditTransaction,
         onDeleteTransaction = { transaction ->
             viewModel.delete(transaction)
@@ -103,6 +106,7 @@ private fun HomeContent(
     onAddTransaction: () -> Unit,
     onManageCategories: () -> Unit,
     onShowCharts: () -> Unit,
+    onOpenSettings: () -> Unit,
     onEditTransaction: (Long) -> Unit,
     onDeleteTransaction: (Transaction) -> Unit,
     modifier: Modifier = Modifier
@@ -115,16 +119,16 @@ private fun HomeContent(
                 title = { Text(stringResource(R.string.app_name)) },
                 actions = {
                     IconButton(onClick = onShowCharts) {
-                        Icon(
-                            ChartsBarIcon,
-                            contentDescription = stringResource(R.string.home_charts)
-                        )
+                        Icon(ChartsBarIcon, contentDescription = stringResource(R.string.home_charts))
                     }
                     IconButton(onClick = onManageCategories) {
                         Icon(
                             Icons.AutoMirrored.Filled.List,
                             contentDescription = stringResource(R.string.home_manage_categories)
                         )
+                    }
+                    IconButton(onClick = onOpenSettings) {
+                        Icon(Icons.Default.Settings, contentDescription = stringResource(R.string.home_settings))
                     }
                 }
             )
@@ -352,6 +356,7 @@ private fun HomeContentPreview() {
             onAddTransaction = {},
             onManageCategories = {},
             onShowCharts = {},
+            onOpenSettings = {},
             onEditTransaction = {},
             onDeleteTransaction = {}
         )
@@ -368,6 +373,7 @@ private fun HomeEmptyPreview() {
             onAddTransaction = {},
             onManageCategories = {},
             onShowCharts = {},
+            onOpenSettings = {},
             onEditTransaction = {},
             onDeleteTransaction = {}
         )

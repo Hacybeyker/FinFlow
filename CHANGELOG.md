@@ -8,6 +8,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 > **Change types:** `Added` (feature), `Fixed` (fix), `Changed` / `Enhancement` (improvement),
 > `Deprecated`, `Removed`, `Security`.
 
+## [0.8.0] - 2026-07-04
+
+### Added
+- **Settings feature (`feature/settings/`):** a Settings screen reachable from a new Home top-bar
+  action, with three persistent preferences — **theme** (system / light / dark), **display currency**
+  (device default or a curated ISO 4217 list) and an **app-lock toggle**. Full vertical slice: pure
+  domain (`ThemeMode`, `UserPreferences`, `PreferencesRepository` + 4 use cases), data over
+  **Preferences DataStore** (`finflow_settings`), and an MVI screen.
+- **Preferences are reactive end to end:** the root observes them and re-applies instantly —
+  `FinFlowTheme(darkTheme = …)` from the theme mode, a new `FinFlowTheme(moneyFormatter = …)`
+  parameter feeds `LocalMoneyFormatter` so every amount re-formats on a currency change (no screen
+  changed), and `AppLock(enabled = …)` skips the biometric gate when the user turned it off.
+- **Unit tests (8 new, 46 total):** `SettingsViewModelTest` against a fake repository, and
+  `DataStorePreferencesRepositoryTest` exercising the **real DataStore on the JVM** over a temp file
+  — including corrupt stored values (unknown theme, non-ISO currency) degrading to defaults.
+
+### Changed
+- **Theme switches cross-fade instead of snapping:** `FinFlowTheme` animates every color through
+  `animateColorAsState` (500 ms tween) — the Material scheme plus the finance and chart palettes
+  together, so amounts, avatars and the donut never jump while the background is mid-fade. Cold
+  start does not animate (colors start at their target).
+- The app root composes nothing until DataStore's first emission: deciding the lock gate from a
+  default value would prompt users who disabled the lock (and flash the wrong theme) on cold start.
+
 ## [0.7.0] - 2026-07-04
 
 ### Added

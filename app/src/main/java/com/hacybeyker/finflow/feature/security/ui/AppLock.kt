@@ -34,9 +34,17 @@ import com.hacybeyker.finflow.core.ui.theme.spacing
  * Gates [content] behind a biometric/device-credential prompt. While locked it shows [LockScreen] and
  * nothing of the app is composed; once authenticated, [content] replaces it until the app spends more
  * than the grace period in background, which re-arms the lock (see [SecurityViewModel]).
+ *
+ * [enabled] comes from the user's settings: when off, [content] composes directly. The caller must
+ * only pass a **loaded** preference (never a default while DataStore is still reading), otherwise a
+ * user who disabled the lock would get prompted on cold start.
  */
 @Composable
-fun AppLock(modifier: Modifier = Modifier, content: @Composable () -> Unit) {
+fun AppLock(modifier: Modifier = Modifier, enabled: Boolean = true, content: @Composable () -> Unit) {
+    if (!enabled) {
+        content()
+        return
+    }
     val viewModel: SecurityViewModel = hiltViewModel()
     RelockOnBackground(viewModel)
     if (viewModel.unlocked) {

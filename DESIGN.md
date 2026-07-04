@@ -41,7 +41,9 @@ This document describes **intent**. The **runtime source of truth** is the Kotli
    labeled (extended FAB), touch targets are big, flows stay short.
 4. **Consistency over cleverness.** Reuse a token or a shared component before inventing a new value.
 5. **Legible first.** Comfortable sizes, ample line height and AA contrast in both themes.
-6. **First-class dark mode.** Light and dark are designed in parallel, not retrofitted.
+6. **First-class dark mode.** Light and dark are designed in parallel, not retrofitted. Switching
+   theme never snaps: `FinFlowTheme` cross-fades every color (scheme + finance + chart palettes,
+   500 ms) so the whole screen transitions as one.
 
 ---
 
