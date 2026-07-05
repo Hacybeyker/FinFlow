@@ -15,7 +15,7 @@ import com.hacybeyker.finflow.core.ui.theme.chartColors
 import com.hacybeyker.finflow.core.ui.theme.spacing
 
 /** Tint strength of the category accent used as avatar background. */
-private const val AVATAR_TINT_ALPHA = 0.16f
+private const val AVATAR_TINT_ALPHA = 0.24f
 
 /**
  * Colorful anchor for a category: its initial over its accent color (a `chartColors` slice keyed by

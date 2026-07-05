@@ -57,9 +57,9 @@ neutrals keep everything else calm. Every role below maps 1:1 to a token in code
 
 | Role | Purpose | Light | Dark |
 |------|---------|-------|------|
-| `primary` | Main actions (FAB/CTA), active states | `#6C3DF4` | `#CFBDFF` |
-| `onPrimary` | Content on `primary` | `#FFFFFF` | `#3813A0` |
-| `primaryContainer` | **Hero surface** (balance card), selected chips, highlights | `#E9DDFF` | `#5224C4` |
+| `primary` | **Hero surface** (balance card), main actions (FAB/CTA), active states | `#6C3DF4` | `#CFBDFF` |
+| `onPrimary` | Content on `primary` (hero, FAB) | `#FFFFFF` | `#3813A0` |
+| `primaryContainer` | Tinted emphasis surfaces (selected chips, highlights) | `#E9DDFF` | `#5224C4` |
 | `secondary` | Supporting accents, less prominent controls | `#5F5A7D` | `#C9C2E8` |
 | `tertiary` | Fresh accent (badges, subtle highlights) | `#00696B` | `#80D4D6` |
 | `error` | Validation/error states (not "expense") | `#BA1A1A` | `#FFB4AB` |
@@ -69,9 +69,10 @@ neutrals keep everything else calm. Every role below maps 1:1 to a token in code
 | `onSurfaceVariant` | Secondary text, icons | `#48454F` | `#CBC4D8` |
 | `outline` | Borders, outlined fields | `#7A7684` | `#948F9E` |
 
-**Tonal surface ladder** (violet-tinted elevation without shadows): list rows and quiet cards sit on
-`surfaceContainerLow` (`#F5F1FC` / `#1C1A22`); sheets, menus and dialogs climb to
-`surfaceContainerHigh` (`#E9E5F1` / `#2B2831`). The full ladder
+**Tonal surface ladder** (violet-tinted elevation without shadows): list rows sit on
+`surfaceContainer` (`#EEE6FA` / `#231F2E`, a clearly lavender card tint); quieter fills use
+`surfaceContainerLow` (`#F4EEFC` / `#1D1A26`) and sheets/menus/dialogs climb to
+`surfaceContainerHigh` (`#E8DFF7` / `#2D2938`). The full ladder
 (`surfaceDim/Bright`, `surfaceContainerLowest…Highest`, `inverse*`) is defined in
 `ui/theme/Color.kt` and wired in `Theme.kt`.
 
@@ -81,13 +82,14 @@ neutrals keep everything else calm. Every role below maps 1:1 to a token in code
 
 ### The hero surface
 
-The signature FinFlow surface: a **solid `primaryContainer`** card clipped to `shapes.large` — soft
-lavender in light, deep violet in dark, both with high-contrast `onPrimaryContainer` content. Rules:
+The signature FinFlow surface: a **solid `primary`** card clipped to `shapes.large` — vivid violet
+in light, soft lavender in dark (always matching the FAB), with `onPrimary` content. The Home hero
+shows the all-time balance plus the **current month's income/expense mini-stats**. Rules:
 
 - **At most one hero surface per screen** (today: the Home balance card).
-- Content on it is always `onPrimaryContainer` (supporting text may soften to 85% alpha). Never
-  place semantic green/coral text on it — it fails contrast; `AmountText` accepts a `color`
-  override for exactly this case.
+- Content on it is always `onPrimary` (supporting text may soften to 85% alpha). Never place
+  semantic green/coral text on it — it fails contrast; `AmountText` accepts a `color` override for
+  exactly this case, and the `+`/`−` signs carry the income/expense meaning.
 - **No gradients.** A solid brand surface reads calmer and keeps text contrast predictable in both
   themes (a violet→teal gradient was tried and reverted: it looked odd and hurt dark-mode
   legibility).
@@ -220,9 +222,9 @@ re-created per screen. A component renders state and emits events; it holds no b
 
 | Element | Recipe |
 |---------|--------|
-| **Hero balance** | solid `primaryContainer` · `shapes.large` · `onPrimaryContainer` text · `displaySmall` figure, one line + auto-shrink |
-| **Category avatar** | `CategoryAvatar`: initial on a 48dp circle, `chartColors` accent at 16% tint (decorative — name always adjacent) |
-| **List row** | `surfaceContainerLow` · `shapes.medium` · avatar + title/date + `AmountText` |
+| **Hero balance** | solid `primary` · `shapes.large` · `onPrimary` text · `displaySmall` figure (one line + auto-shrink) + month income/expense mini-stats |
+| **Category avatar** | `CategoryAvatar`: initial on a 48dp circle, `chartColors` accent at 24% tint (decorative — name always adjacent) |
+| **List row** | `surfaceContainer` · `shapes.medium` · avatar + title/date + `AmountText`, month section headers with net total |
 | **Primary CTA** | Extended FAB, `primary`/`onPrimary`, always labeled (icon-only FABs don't teach the app) |
 
 ---
@@ -230,9 +232,9 @@ re-created per screen. A component renders state and emits events; it holds no b
 ## Accessibility
 
 - **Contrast:** text/icons meet **WCAG AA** (≥ 4.5:1 body, ≥ 3:1 large) in both themes. New color
-  pairings must be checked before adoption (the hero pairs `onPrimaryContainer` on
-  `primaryContainer`: ≈ 12:1 in light, ≈ 6:1 in dark). Checking the math is necessary but not
-  sufficient — verify perceptually in dark mode too.
+  pairings must be checked before adoption (the hero pairs `onPrimary` on `primary`: ≈ 5.8:1 in
+  light, ≈ 7.2:1 in dark). Checking the math is necessary but not sufficient — verify perceptually
+  in dark mode too.
 - **Don't rely on color alone:** pair income/expense color with a sign (`+`/`−`) or icon; category
   avatars are decorative and always accompanied by the category name.
 - **Touch targets:** interactive elements ≥ **48×48dp**.

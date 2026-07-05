@@ -3,11 +3,12 @@ package com.hacybeyker.finflow.feature.transactions.ui.home
 import androidx.compose.runtime.Stable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.hacybeyker.finflow.core.domain.Money
 import com.hacybeyker.finflow.core.domain.Transaction
 import com.hacybeyker.finflow.feature.transactions.domain.usecase.AddTransactionUseCase
 import com.hacybeyker.finflow.feature.transactions.domain.usecase.DeleteTransactionUseCase
 import com.hacybeyker.finflow.feature.transactions.domain.usecase.GetBalanceUseCase
-import com.hacybeyker.finflow.feature.transactions.domain.usecase.GetTransactionsByMonthUseCase
+import com.hacybeyker.finflow.feature.transactions.domain.usecase.GetTransactionHistoryUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.time.Clock
 import java.time.YearMonth
@@ -22,7 +23,7 @@ import kotlinx.coroutines.launch
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     getBalance: GetBalanceUseCase,
-    getTransactionsByMonth: GetTransactionsByMonthUseCase,
+    getTransactionHistory: GetTransactionHistoryUseCase,
     private val deleteTransaction: DeleteTransactionUseCase,
     private val addTransaction: AddTransactionUseCase,
     clock: Clock
@@ -30,9 +31,15 @@ class HomeViewModel @Inject constructor(
 
     val uiState: StateFlow<HomeUiState> = combine(
         getBalance(),
-        getTransactionsByMonth(YearMonth.now(clock))
-    ) { balance, transactions ->
-        HomeUiState.Content(balance = balance, transactions = transactions)
+        getTransactionHistory()
+    ) { balance, months ->
+        val currentMonth = months.firstOrNull { it.month == YearMonth.now(clock) }
+        HomeUiState.Content(
+            balance = balance,
+            monthIncome = currentMonth?.income ?: Money.ZERO,
+            monthExpense = currentMonth?.expense ?: Money.ZERO,
+            months = months
+        )
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(STOP_TIMEOUT_MILLIS),

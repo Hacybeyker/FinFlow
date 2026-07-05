@@ -9,9 +9,10 @@ import com.hacybeyker.finflow.feature.transactions.domain.transaction
 import com.hacybeyker.finflow.feature.transactions.domain.usecase.AddTransactionUseCase
 import com.hacybeyker.finflow.feature.transactions.domain.usecase.DeleteTransactionUseCase
 import com.hacybeyker.finflow.feature.transactions.domain.usecase.GetBalanceUseCase
-import com.hacybeyker.finflow.feature.transactions.domain.usecase.GetTransactionsByMonthUseCase
+import com.hacybeyker.finflow.feature.transactions.domain.usecase.GetTransactionHistoryUseCase
 import java.time.Clock
 import java.time.LocalDate
+import java.time.YearMonth
 import java.time.ZoneOffset
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.advanceUntilIdle
@@ -33,44 +34,59 @@ class HomeViewModelTest {
 
     private fun viewModel(repository: FakeTransactionRepository) = HomeViewModel(
         getBalance = GetBalanceUseCase(repository),
-        getTransactionsByMonth = GetTransactionsByMonthUseCase(repository),
+        getTransactionHistory = GetTransactionHistoryUseCase(repository),
         deleteTransaction = DeleteTransactionUseCase(repository),
         addTransaction = AddTransactionUseCase(repository),
         clock = clock
     )
 
     @Test
-    fun `keeps the all-time balance even when the current month has no transactions`() = runTest {
-        val repository = FakeTransactionRepository(
-            listOf(transaction(amount = 2000, type = TransactionType.INCOME, date = LocalDate.of(2026, 5, 20)))
-        )
-
-        viewModel(repository).uiState.test {
-            assertEquals(HomeUiState.Loading, awaitItem())
-            val content = awaitItem() as HomeUiState.Content
-            // May is a previous month: the list is empty, but the balance is all-time (2000).
-            assertEquals(Money(2000), content.balance)
-            assertTrue(content.transactions.isEmpty())
-            cancelAndIgnoreRemainingEvents()
-        }
-    }
-
-    @Test
-    fun `emits Content with balance and the current month transactions`() = runTest {
+    fun `emits Content with the all-time balance, current month stats and the grouped history`() = runTest {
         val repository = FakeTransactionRepository(
             listOf(
-                transaction(amount = 2000, type = TransactionType.INCOME, date = LocalDate.of(2026, 6, 1)),
-                transaction(amount = 500, type = TransactionType.EXPENSE, date = LocalDate.of(2026, 6, 10)),
-                transaction(amount = 300, type = TransactionType.EXPENSE, date = LocalDate.of(2026, 5, 30))
+                transaction(id = 1, amount = 2000, type = TransactionType.INCOME, date = LocalDate.of(2026, 6, 1)),
+                transaction(id = 2, amount = 500, type = TransactionType.EXPENSE, date = LocalDate.of(2026, 6, 10)),
+                transaction(id = 3, amount = 300, type = TransactionType.EXPENSE, date = LocalDate.of(2026, 5, 30))
             )
         )
 
         viewModel(repository).uiState.test {
             assertEquals(HomeUiState.Loading, awaitItem())
             val content = awaitItem() as HomeUiState.Content
-            // balance is all-time (2000 − 500 − 300); the list is current month only (2 of 3).
             assertEquals(Money(1200), content.balance)
-            assertEquals(2, content.transactions.size)
+            // Hero stats are the current month (June) only; history covers every month, newest first.
+            assertEquals(Money(2000), content.monthIncome)
+            assertEquals(Money(500), content.monthExpense)
+            assertEquals(listOf(YearMonth.of(2026, 6), YearMonth.of(2026, 5)), content.months.map { it.month })
+            assertEquals(3, content.months.sumOf { it.transactions.size })
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `a current month without movements shows zero stats but keeps the all-time balance`() = runTest {
+        val repository = FakeTransactionRepository(
+            listOf(transaction(id = 1, amount = 2000, type = TransactionType.INCOME, date = LocalDate.of(2026, 5, 20)))
+        )
+
+        viewModel(repository).uiState.test {
+            assertEquals(HomeUiState.Loading, awaitItem())
+            val content = awaitItem() as HomeUiState.Content
+            assertEquals(Money(2000), content.balance)
+            assertEquals(Money.ZERO, content.monthIncome)
+            assertEquals(Money.ZERO, content.monthExpense)
+            assertEquals(1, content.months.size)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `an empty history emits Content with no months but the real balance`() = runTest {
+        viewModel(FakeTransactionRepository()).uiState.test {
+            assertEquals(HomeUiState.Loading, awaitItem())
+            val content = awaitItem() as HomeUiState.Content
+            assertEquals(Money.ZERO, content.balance)
+            assertTrue(content.months.isEmpty())
             cancelAndIgnoreRemainingEvents()
         }
     }

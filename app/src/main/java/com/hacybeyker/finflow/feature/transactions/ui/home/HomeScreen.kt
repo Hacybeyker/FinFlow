@@ -5,13 +5,13 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Add
@@ -34,15 +34,18 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.hacybeyker.finflow.R
@@ -55,13 +58,12 @@ import com.hacybeyker.finflow.core.ui.components.CategoryAvatar
 import com.hacybeyker.finflow.core.ui.theme.FinFlowTheme
 import com.hacybeyker.finflow.core.ui.theme.spacing
 import com.hacybeyker.finflow.feature.charts.ui.ChartsBarIcon
+import com.hacybeyker.finflow.feature.transactions.domain.TransactionMonth
 import java.time.LocalDate
+import java.time.YearMonth
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 import kotlinx.coroutines.launch
-
-/** Supporting text on the hero card: onPrimaryContainer softened just enough to build hierarchy. */
-private const val HERO_LABEL_ALPHA = 0.85f
 
 @Composable
 fun HomeScreen(
@@ -115,22 +117,10 @@ private fun HomeContent(
         modifier = modifier.fillMaxSize(),
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.app_name)) },
-                actions = {
-                    IconButton(onClick = onShowCharts) {
-                        Icon(ChartsBarIcon, contentDescription = stringResource(R.string.home_charts))
-                    }
-                    IconButton(onClick = onManageCategories) {
-                        Icon(
-                            Icons.AutoMirrored.Filled.List,
-                            contentDescription = stringResource(R.string.home_manage_categories)
-                        )
-                    }
-                    IconButton(onClick = onOpenSettings) {
-                        Icon(Icons.Default.Settings, contentDescription = stringResource(R.string.home_settings))
-                    }
-                }
+            HomeTopBar(
+                onShowCharts = onShowCharts,
+                onManageCategories = onManageCategories,
+                onOpenSettings = onOpenSettings
             )
         },
         floatingActionButton = {
@@ -143,24 +133,38 @@ private fun HomeContent(
             )
         }
     ) { innerPadding ->
+        // Only the top inset is consumed here: the list owns the bottom inset as contentPadding so
+        // its last items scroll all the way to the device edge instead of stopping above it. The
+        // hero's collapse state intercepts the list's scroll via nested scroll (enterAlways).
+        val heroState = rememberHeroCollapseState()
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding)
-                .padding(MaterialTheme.spacing.screen)
+                .padding(
+                    start = MaterialTheme.spacing.screen,
+                    top = innerPadding.calculateTopPadding() + MaterialTheme.spacing.md,
+                    end = MaterialTheme.spacing.screen
+                )
+                .nestedScroll(heroState.nestedScrollConnection)
         ) {
             when (uiState) {
                 HomeUiState.Loading -> CenteredBox { CircularProgressIndicator() }
                 is HomeUiState.Content -> {
-                    BalanceCard(balance = uiState.balance)
-                    if (uiState.transactions.isEmpty()) {
+                    BalanceCard(
+                        balance = uiState.balance,
+                        monthIncome = uiState.monthIncome,
+                        monthExpense = uiState.monthExpense,
+                        collapseFraction = { heroState.fraction }
+                    )
+                    if (uiState.months.isEmpty()) {
                         EmptyState()
                     } else {
                         TransactionList(
-                            transactions = uiState.transactions,
+                            months = uiState.months,
+                            bottomInset = innerPadding.calculateBottomPadding(),
                             onEdit = onEditTransaction,
                             onDelete = onDeleteTransaction,
-                            modifier = Modifier.padding(top = MaterialTheme.spacing.lg)
+                            modifier = Modifier.padding(top = MaterialTheme.spacing.sm)
                         )
                     }
                 }
@@ -169,62 +173,78 @@ private fun HomeContent(
     }
 }
 
-/**
- * Hero of the app: the balance on a solid `primaryContainer` card — the single loud element on the
- * screen, so everything below stays quiet. Content is always `onPrimaryContainer` (the semantic
- * green/coral would not pass contrast here), and the figure never wraps: it shrinks to fit one line.
- */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun BalanceCard(balance: Money, modifier: Modifier = Modifier) {
-    Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .clip(MaterialTheme.shapes.large)
-            .background(MaterialTheme.colorScheme.primaryContainer)
-            .padding(MaterialTheme.spacing.lg)
-    ) {
-        Text(
-            text = stringResource(R.string.home_balance_label),
-            style = MaterialTheme.typography.labelLarge,
-            color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = HERO_LABEL_ALPHA)
-        )
-        AmountText(
-            money = balance,
-            style = MaterialTheme.typography.displaySmall,
-            showSign = false,
-            color = MaterialTheme.colorScheme.onPrimaryContainer,
-            maxLines = 1,
-            autoSize = TextAutoSize.StepBased(
-                minFontSize = MaterialTheme.typography.headlineSmall.fontSize,
-                maxFontSize = MaterialTheme.typography.displaySmall.fontSize
-            ),
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = MaterialTheme.spacing.xs)
-        )
-    }
+private fun HomeTopBar(
+    onShowCharts: () -> Unit,
+    onManageCategories: () -> Unit,
+    onOpenSettings: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    TopAppBar(
+        title = { Text(stringResource(R.string.app_name), style = MaterialTheme.typography.headlineSmall) },
+        modifier = modifier,
+        actions = {
+            IconButton(onClick = onShowCharts) {
+                Icon(ChartsBarIcon, contentDescription = stringResource(R.string.home_charts))
+            }
+            IconButton(onClick = onManageCategories) {
+                Icon(
+                    Icons.AutoMirrored.Filled.List,
+                    contentDescription = stringResource(R.string.home_manage_categories)
+                )
+            }
+            IconButton(onClick = onOpenSettings) {
+                Icon(Icons.Default.Settings, contentDescription = stringResource(R.string.home_settings))
+            }
+        }
+    )
 }
 
 @Composable
 private fun TransactionList(
-    transactions: List<Transaction>,
+    months: List<TransactionMonth>,
+    bottomInset: Dp,
     onEdit: (Long) -> Unit,
     onDelete: (Transaction) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val monthFormatter = remember { DateTimeFormatter.ofPattern("MMMM yyyy") }
     LazyColumn(
         modifier = modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.sm)
+        verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.sm),
+        // Bottom inset + FAB clearance: the last row can always scroll clear of the "Agregar" button.
+        contentPadding = PaddingValues(bottom = bottomInset + MaterialTheme.spacing.xxl + MaterialTheme.spacing.lg)
     ) {
-        items(transactions, key = { it.id }) { transaction ->
-            SwipeableTransactionRow(
-                transaction = transaction,
-                onEdit = { onEdit(transaction.id) },
-                onDelete = { onDelete(transaction) }
-            )
+        months.forEach { section ->
+            item(key = "month-${section.month}") {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = MaterialTheme.spacing.md),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = section.month.format(monthFormatter).replaceFirstChar { it.uppercase() },
+                        style = MaterialTheme.typography.titleMedium,
+                        modifier = Modifier.weight(1f)
+                    )
+                    AmountText(money = section.total, style = MaterialTheme.typography.titleSmall)
+                }
+            }
+            items(section.transactions, key = { it.id }) { transaction ->
+                SwipeableTransactionRow(
+                    transaction = transaction,
+                    onEdit = { onEdit(transaction.id) },
+                    onDelete = { onDelete(transaction) }
+                )
+            }
         }
     }
 }
+
+/** Fraction of the row the user must drag before releasing counts as a delete. */
+private const val DISMISS_THRESHOLD_FRACTION = 0.5f
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -235,10 +255,17 @@ private fun SwipeableTransactionRow(
     modifier: Modifier = Modifier
 ) {
     val dismissState = rememberSwipeToDismissBoxState(
-        confirmValueChange = { value ->
-            (value == SwipeToDismissBoxValue.EndToStart).also { dismissed -> if (dismissed) onDelete() }
-        }
+        positionalThreshold = { totalDistance -> totalDistance * DISMISS_THRESHOLD_FRACTION }
     )
+    // Delete only once the swipe fully settles (not mid-gesture from confirmValueChange), then reset
+    // the state: rows are keyed by id, so an undone delete restores this saved state — without the
+    // reset the restored row would reappear already dismissed (stuck off-screen).
+    LaunchedEffect(dismissState.currentValue) {
+        if (dismissState.currentValue == SwipeToDismissBoxValue.EndToStart) {
+            onDelete()
+            dismissState.reset()
+        }
+    }
     SwipeToDismissBox(
         state = dismissState,
         modifier = modifier,
@@ -273,7 +300,7 @@ private fun TransactionRow(transaction: Transaction, onClick: () -> Unit, modifi
     Surface(
         onClick = onClick,
         shape = MaterialTheme.shapes.medium,
-        color = MaterialTheme.colorScheme.surfaceContainerLow,
+        color = MaterialTheme.colorScheme.surfaceContainer,
         modifier = modifier.fillMaxWidth()
     ) {
         Row(
@@ -335,20 +362,45 @@ private fun HomeContentPreview() {
             uiState = HomeUiState.Content(
                 // Long figure on purpose: the hero amount must shrink to one line, never wrap.
                 balance = Money(12345678),
-                transactions = listOf(
-                    Transaction(
-                        1,
-                        Money(200000),
-                        TransactionType.INCOME,
-                        Category(1, "Nómina"),
-                        LocalDate.of(2026, 6, 1)
+                monthIncome = Money(200000),
+                monthExpense = Money(4500),
+                months = listOf(
+                    TransactionMonth(
+                        month = YearMonth.of(2026, 6),
+                        transactions = listOf(
+                            Transaction(
+                                2,
+                                Money(4500),
+                                TransactionType.EXPENSE,
+                                Category(2, "Compras"),
+                                LocalDate.of(2026, 6, 10)
+                            ),
+                            Transaction(
+                                1,
+                                Money(200000),
+                                TransactionType.INCOME,
+                                Category(1, "Nómina"),
+                                LocalDate.of(2026, 6, 1)
+                            )
+                        ),
+                        income = Money(200000),
+                        expense = Money(4500),
+                        total = Money(195500)
                     ),
-                    Transaction(
-                        2,
-                        Money(4500),
-                        TransactionType.EXPENSE,
-                        Category(2, "Compras"),
-                        LocalDate.of(2026, 6, 10)
+                    TransactionMonth(
+                        month = YearMonth.of(2026, 5),
+                        transactions = listOf(
+                            Transaction(
+                                3,
+                                Money(80000),
+                                TransactionType.EXPENSE,
+                                Category(3, "Hogar"),
+                                LocalDate.of(2026, 5, 28)
+                            )
+                        ),
+                        income = Money.ZERO,
+                        expense = Money(80000),
+                        total = Money(-80000)
                     )
                 )
             ),
@@ -368,7 +420,12 @@ private fun HomeContentPreview() {
 private fun HomeEmptyPreview() {
     FinFlowTheme {
         HomeContent(
-            uiState = HomeUiState.Content(balance = Money.ZERO, transactions = emptyList()),
+            uiState = HomeUiState.Content(
+                balance = Money.ZERO,
+                monthIncome = Money.ZERO,
+                monthExpense = Money.ZERO,
+                months = emptyList()
+            ),
             snackbarHostState = remember { SnackbarHostState() },
             onAddTransaction = {},
             onManageCategories = {},

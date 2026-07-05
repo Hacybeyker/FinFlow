@@ -8,6 +8,41 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 > **Change types:** `Added` (feature), `Fixed` (fix), `Changed` / `Enhancement` (improvement),
 > `Deprecated`, `Removed`, `Security`.
 
+## [0.9.0] - 2026-07-04
+
+### Added
+- **Full transaction history on Home:** the list no longer stops at the current month — a new
+  `GetTransactionHistoryUseCase` groups every transaction by month (`TransactionMonth`: newest month
+  and newest transaction first, ties on the same date broken by id) and the list renders **month
+  section headers** with each month's net total via `AmountText`.
+- **Hero month mini-stats:** the balance card now shows the current calendar month's gross
+  **income and expense** under the all-time balance (zeros when the month is empty), with the
+  `+`/`−` signs carrying the meaning — semantic green/coral never sits on the violet surface.
+- **Collapsing hero (`BalanceCard.kt`):** scrolling the list folds the mini-stats away following
+  Material's *enterAlways* app-bar behavior — `HeroCollapseState` intercepts the list's scroll with
+  a `NestedScrollConnection`, so the motion under the finger is exactly the finger's displacement,
+  and a mid-way release settles to the nearest state with a spring. The collapse fraction is read
+  only inside layout/draw lambdas: scroll re-layouts without recomposing.
+- **Unit tests (61 total):** `GetTransactionHistoryUseCaseTest` (grouping, ordering, aggregates)
+  and `HeroCollapseStateTest` (clamping, delta consumption, settle direction); `HomeViewModelTest`
+  reworked for the new state. The template `ExampleUnitTest` is gone.
+
+### Changed
+- **The hero goes full violet:** the balance card moves from `primaryContainer` to solid `primary`
+  (vivid violet in light, soft lavender in dark — always matching the FAB) with `onPrimary` content;
+  `DESIGN.md` re-verifies contrast (≈ 5.8:1 light, ≈ 7.2:1 dark, AA).
+- **Warmer lavender surfaces:** the whole `surfaceContainer*` ladder re-tints toward lavender in
+  both themes, transaction rows step up from `surfaceContainerLow` to `surfaceContainer` (a clearly
+  tinted card), and the `CategoryAvatar` accent strengthens from 16% to 24% tint.
+- **Insets:** the list now owns the bottom inset as `contentPadding` (plus FAB clearance), so the
+  last row scrolls to the device edge instead of stopping above it.
+
+### Fixed
+- **Swipe-to-delete after undo:** deletion now fires when the swipe fully settles (not mid-gesture)
+  and the dismiss state resets afterwards — rows are keyed by id, so a row restored by the undo
+  snackbar used to reappear already dismissed (stuck off-screen). A row must also travel **half its
+  width** (up from the ~25% default) before the release counts as a delete.
+
 ## [0.8.0] - 2026-07-04
 
 ### Added
