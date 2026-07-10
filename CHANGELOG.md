@@ -8,6 +8,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 > **Change types:** `Added` (feature), `Fixed` (fix), `Changed` / `Enhancement` (improvement),
 > `Deprecated`, `Removed`, `Security`.
 
+## [0.10.0] - 2026-07-09
+
+### Added
+- **Home-screen widget (`feature/widget/`, Glance):** all-time balance, current-month income and
+  expense and — when the launcher reports enough height (`SizeMode.Exact`) — the latest 3 movements.
+  Rendered as **one continuous surface**: a subtle brand-gradient drawable (day/night variants)
+  fills the widget bounds at the system corner radius with `onPrimary` text and signs throughout
+  (no green/coral on a colored surface, per `DESIGN.md`). Built with `glance-appwidget` +
+  `glance-material3` over the app's own color schemes (now `internal` instead of `private`), so the
+  widget never forks the palette; it follows **system** dark mode.
+- **Amounts are masked by default (`••••••`)** with a "Mostrar"/"Ocultar" tap target
+  (`ToggleRevealAction`, per-instance Glance state). Deliberately **not** gated behind the biometric
+  app lock: the OS lock screen is the real access boundary for a home-screen surface — this is
+  casual privacy, not access control.
+- **Live refresh:** an app-scoped `WidgetRefresher` (started by `FinFlowApplication`, `Lazy` deps to
+  stay off the startup critical path) pushes `updateAll` on every transaction write or currency
+  change, and the Glance session collects the summary **as state** (`collectAsState`), so an open
+  session recomposes instead of freezing a captured snapshot. `WidgetRefreshWorker` (WorkManager,
+  unique periodic, daily) is the eventual-consistency fallback — enqueued when the first widget is
+  added (`onEnabled`), cancelled when the last one is removed (`onDisabled`).
+- **Widget domain:** `GetWidgetSummaryUseCase` composes the `WidgetSummary` snapshot from the
+  existing balance + grouped-history contracts (no new queries). Unit tests: 4 new, 65 total.
+
+### Changed
+- **Cross-feature domain promoted to `core/domain`:** `GetBalanceUseCase`,
+  `GetTransactionHistoryUseCase` and `TransactionMonth` (plus a new `currentMonth(clock)` helper)
+  moved out of `feature/transactions` — they are now shared contracts consumed by both Home and the
+  widget, keeping the slice dependency rule intact.
+- `MoneyFormatter` gains `formatSigned()` (the `+` prefix logic moves out of `AmountText`) and a
+  `moneyFormatterFor(currencyCode)` factory shared by `MainActivity` and the widget.
+
 ## [0.9.0] - 2026-07-04
 
 ### Added

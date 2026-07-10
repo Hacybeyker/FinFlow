@@ -52,13 +52,13 @@ import com.hacybeyker.finflow.R
 import com.hacybeyker.finflow.core.domain.Category
 import com.hacybeyker.finflow.core.domain.Money
 import com.hacybeyker.finflow.core.domain.Transaction
+import com.hacybeyker.finflow.core.domain.TransactionMonth
 import com.hacybeyker.finflow.core.domain.TransactionType
 import com.hacybeyker.finflow.core.ui.components.AmountText
 import com.hacybeyker.finflow.core.ui.components.CategoryAvatar
 import com.hacybeyker.finflow.core.ui.theme.FinFlowTheme
 import com.hacybeyker.finflow.core.ui.theme.spacing
 import com.hacybeyker.finflow.feature.charts.ui.ChartsBarIcon
-import com.hacybeyker.finflow.feature.transactions.domain.TransactionMonth
 import java.time.LocalDate
 import java.time.YearMonth
 import java.time.format.DateTimeFormatter

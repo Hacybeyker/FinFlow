@@ -1,8 +1,8 @@
 package com.hacybeyker.finflow.feature.transactions.domain.usecase
 
+import com.hacybeyker.finflow.core.domain.FakeTransactionRepository
 import com.hacybeyker.finflow.core.domain.Money
-import com.hacybeyker.finflow.feature.transactions.domain.FakeTransactionRepository
-import com.hacybeyker.finflow.feature.transactions.domain.transaction
+import com.hacybeyker.finflow.core.domain.transaction
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals

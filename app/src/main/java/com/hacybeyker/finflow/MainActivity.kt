@@ -14,14 +14,13 @@ import androidx.compose.ui.Modifier
 import androidx.fragment.app.FragmentActivity
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.hacybeyker.finflow.core.ui.format.MoneyFormatter
+import com.hacybeyker.finflow.core.ui.format.moneyFormatterFor
 import com.hacybeyker.finflow.core.ui.theme.FinFlowTheme
 import com.hacybeyker.finflow.feature.security.ui.AppLock
 import com.hacybeyker.finflow.feature.settings.domain.ThemeMode
 import com.hacybeyker.finflow.feature.settings.ui.SettingsViewModel
 import com.hacybeyker.finflow.navigation.FinFlowNavHost
 import dagger.hilt.android.AndroidEntryPoint
-import java.util.Currency
 
 // FragmentActivity (not ComponentActivity) because androidx.biometric's BiometricPrompt requires it.
 @AndroidEntryPoint
@@ -42,7 +41,7 @@ class MainActivity : FragmentActivity() {
                 ThemeMode.DARK -> true
             }
             val moneyFormatter = remember(preferences.currencyCode) {
-                MoneyFormatter(currency = preferences.currencyCode?.let(Currency::getInstance))
+                moneyFormatterFor(preferences.currencyCode)
             }
 
             FinFlowTheme(darkTheme = darkTheme, moneyFormatter = moneyFormatter) {

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Dark-theme counterpart of drawable/widget_hero_gradient.xml — same subtle gradient, built from
+     the dark scheme's primary (a light lavender, paired with dark onPrimary text). Picked up
+     automatically by the night resource qualifier; the widget follows system dark mode. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <gradient
+        android:type="linear"
+        android:angle="135"
+        android:startColor="#D1C0FF"
+        android:endColor="#C3B2F0" />
+</shape>

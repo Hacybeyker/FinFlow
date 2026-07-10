@@ -1,10 +1,10 @@
-package com.hacybeyker.finflow.feature.transactions.domain.usecase
+package com.hacybeyker.finflow.core.domain.usecase
 
 import com.hacybeyker.finflow.core.domain.Money
 import com.hacybeyker.finflow.core.domain.Transaction
+import com.hacybeyker.finflow.core.domain.TransactionMonth
 import com.hacybeyker.finflow.core.domain.TransactionRepository
 import com.hacybeyker.finflow.core.domain.TransactionType
-import com.hacybeyker.finflow.feature.transactions.domain.TransactionMonth
 import java.time.YearMonth
 import javax.inject.Inject
 import kotlinx.coroutines.flow.Flow

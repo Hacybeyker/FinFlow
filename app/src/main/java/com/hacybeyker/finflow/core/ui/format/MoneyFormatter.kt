@@ -25,12 +25,22 @@ class MoneyFormatter(locale: Locale = Locale.getDefault(), currency: Currency? =
 
     fun format(money: Money): String = format.format(BigDecimal.valueOf(money.minorUnits).movePointLeft(fractionDigits))
 
+    /** Same as [format], plus a `+` prefix for positive amounts (NumberFormat already adds `-`). */
+    fun formatSigned(money: Money): String {
+        val formatted = format(money)
+        return if (money.isPositive) "+$formatted" else formatted
+    }
+
     private companion object {
         const val DEFAULT_FRACTION_DIGITS = 2
     }
 }
 
 val LocalMoneyFormatter = staticCompositionLocalOf { MoneyFormatter() }
+
+/** Builds a formatter for a stored ISO 4217 currency code (`null` = device default). */
+fun moneyFormatterFor(currencyCode: String?): MoneyFormatter =
+    MoneyFormatter(currency = currencyCode?.let(Currency::getInstance))
 
 /**
  * Parses user input ("45.50", "45,50", "1200") into exact [Money] minor units, or `null` if it is

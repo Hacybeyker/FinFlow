@@ -16,6 +16,12 @@
     <string name="home_charts">Gráficos</string>
     <string name="home_settings">Ajustes</string>
 
+    <!-- Widget -->
+    <string name="widget_description">Balance, resumen del mes y últimos movimientos</string>
+    <string name="widget_latest">Últimos movimientos</string>
+    <string name="widget_reveal">Mostrar</string>
+    <string name="widget_hide">Ocultar</string>
+
     <!-- Settings -->
     <string name="settings_title">Ajustes</string>
     <string name="settings_back">Volver</string>

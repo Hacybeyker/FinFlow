@@ -1,4 +1,4 @@
-package com.hacybeyker.finflow.feature.transactions.domain.usecase
+package com.hacybeyker.finflow.core.domain.usecase
 
 import com.hacybeyker.finflow.core.domain.Money
 import com.hacybeyker.finflow.core.domain.TransactionRepository

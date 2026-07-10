@@ -1,7 +1,7 @@
 package com.hacybeyker.finflow.feature.transactions.domain.usecase
 
-import com.hacybeyker.finflow.feature.transactions.domain.FakeTransactionRepository
-import com.hacybeyker.finflow.feature.transactions.domain.transaction
+import com.hacybeyker.finflow.core.domain.FakeTransactionRepository
+import com.hacybeyker.finflow.core.domain.transaction
 import java.time.LocalDate
 import java.time.YearMonth
 import kotlinx.coroutines.flow.first

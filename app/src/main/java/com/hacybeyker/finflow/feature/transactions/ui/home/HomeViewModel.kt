@@ -5,13 +5,13 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.hacybeyker.finflow.core.domain.Money
 import com.hacybeyker.finflow.core.domain.Transaction
+import com.hacybeyker.finflow.core.domain.currentMonth
+import com.hacybeyker.finflow.core.domain.usecase.GetBalanceUseCase
+import com.hacybeyker.finflow.core.domain.usecase.GetTransactionHistoryUseCase
 import com.hacybeyker.finflow.feature.transactions.domain.usecase.AddTransactionUseCase
 import com.hacybeyker.finflow.feature.transactions.domain.usecase.DeleteTransactionUseCase
-import com.hacybeyker.finflow.feature.transactions.domain.usecase.GetBalanceUseCase
-import com.hacybeyker.finflow.feature.transactions.domain.usecase.GetTransactionHistoryUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.time.Clock
-import java.time.YearMonth
 import javax.inject.Inject
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -33,7 +33,7 @@ class HomeViewModel @Inject constructor(
         getBalance(),
         getTransactionHistory()
     ) { balance, months ->
-        val currentMonth = months.firstOrNull { it.month == YearMonth.now(clock) }
+        val currentMonth = months.currentMonth(clock)
         HomeUiState.Content(
             balance = balance,
             monthIncome = currentMonth?.income ?: Money.ZERO,

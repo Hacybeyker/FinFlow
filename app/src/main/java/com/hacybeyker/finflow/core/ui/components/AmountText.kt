@@ -39,9 +39,9 @@ fun AmountText(
         money.isNegative -> MaterialTheme.financeColors.expense
         else -> MaterialTheme.colorScheme.onSurface
     }
-    val formatted = LocalMoneyFormatter.current.format(money)
+    val moneyFormatter = LocalMoneyFormatter.current
     Text(
-        text = if (showSign && money.isPositive) "+$formatted" else formatted,
+        text = if (showSign) moneyFormatter.formatSigned(money) else moneyFormatter.format(money),
         color = resolvedColor,
         style = style,
         maxLines = maxLines,

@@ -1,7 +1,6 @@
-package com.hacybeyker.finflow.feature.transactions.domain
+package com.hacybeyker.finflow.core.domain
 
-import com.hacybeyker.finflow.core.domain.Money
-import com.hacybeyker.finflow.core.domain.Transaction
+import java.time.Clock
 import java.time.YearMonth
 
 /**
@@ -16,3 +15,7 @@ data class TransactionMonth(
     val expense: Money,
     val total: Money
 )
+
+/** The entry for the current calendar month, or `null` if it has no movements yet. */
+fun List<TransactionMonth>.currentMonth(clock: Clock): TransactionMonth? =
+    firstOrNull { it.month == YearMonth.now(clock) }

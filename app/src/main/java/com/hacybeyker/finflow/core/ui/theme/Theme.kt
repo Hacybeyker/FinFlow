@@ -17,7 +17,9 @@ import androidx.compose.ui.platform.LocalContext
 import com.hacybeyker.finflow.core.ui.format.LocalMoneyFormatter
 import com.hacybeyker.finflow.core.ui.format.MoneyFormatter
 
-private val LightColorScheme = lightColorScheme(
+// Internal (not private) so the Glance widget builds its day/night ColorProviders from these same
+// schemes — the widget must never fork its own palette.
+internal val LightColorScheme = lightColorScheme(
     primary = PrimaryLight,
     onPrimary = OnPrimaryLight,
     primaryContainer = PrimaryContainerLight,
@@ -54,7 +56,7 @@ private val LightColorScheme = lightColorScheme(
     inversePrimary = InversePrimaryLight
 )
 
-private val DarkColorScheme = darkColorScheme(
+internal val DarkColorScheme = darkColorScheme(
     primary = PrimaryDark,
     onPrimary = OnPrimaryDark,
     primaryContainer = PrimaryContainerDark,

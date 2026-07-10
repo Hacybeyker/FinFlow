@@ -226,6 +226,7 @@ re-created per screen. A component renders state and emits events; it holds no b
 | **Category avatar** | `CategoryAvatar`: initial on a 48dp circle, `chartColors` accent at 24% tint (decorative — name always adjacent) |
 | **List row** | `surfaceContainer` · `shapes.medium` · avatar + title/date + `AmountText`, month section headers with net total |
 | **Primary CTA** | Extended FAB, `primary`/`onPrimary`, always labeled (icon-only FABs don't teach the app) |
+| **Widget (Glance)** | **one continuous surface** (no nested card): a subtle brand-gradient drawable fills the entire widget bounds at the system radius, `onPrimary` text + signs throughout (including movement amounts — no green/coral on a colored surface). Follows **system** dark mode. Amounts mask to `••••••` by default with a "Mostrar"/"Ocultar" tap (own tap target, independent of app-lock — see below) |
 
 ---
 

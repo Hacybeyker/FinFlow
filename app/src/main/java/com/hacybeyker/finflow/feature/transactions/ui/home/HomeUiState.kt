@@ -1,7 +1,7 @@
 package com.hacybeyker.finflow.feature.transactions.ui.home
 
 import com.hacybeyker.finflow.core.domain.Money
-import com.hacybeyker.finflow.feature.transactions.domain.TransactionMonth
+import com.hacybeyker.finflow.core.domain.TransactionMonth
 
 sealed interface HomeUiState {
     data object Loading : HomeUiState
