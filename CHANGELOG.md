@@ -8,6 +8,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 > **Change types:** `Added` (feature), `Fixed` (fix), `Changed` / `Enhancement` (improvement),
 > `Deprecated`, `Removed`, `Security`.
 
+## [0.10.1] - 2026-07-09
+
+### Changed
+- **Toolchain and dependency refresh:** Gradle wrapper 9.5.1 → **9.6.1**; Hilt 2.59.2 → 2.60.1,
+  Compose BOM 2026.06.00 → 2026.06.01, Navigation 3 1.1.3 → 1.1.4, hilt-navigation-compose
+  1.3.0 → 1.4.0, DataStore 1.1.7 → 1.2.1, SQLCipher 4.13.0 → 4.17.0, detekt 2.0.0-alpha.4 →
+  alpha.5, and `androidx.security:security-crypto` moves off the alpha channel
+  (1.1.0-alpha06 → **1.1.0** stable).
+
+### Fixed
+- **Hilt generated code failed to compile after the upgrade**
+  (`package com.google.errorprone.annotations does not exist` in `hiltJavaCompileDebug`): Dagger's
+  generated components reference `@CanIgnoreReturnValue` but `dagger`'s POM doesn't declare the
+  annotations artifact — it used to reach the app compile classpath transitively through the older
+  dependencies. Now declared explicitly as `compileOnly(error_prone_annotations)` (CLASS retention:
+  compile-time only, never packaged in the APK).
+
 ## [0.10.0] - 2026-07-09
 
 ### Added
