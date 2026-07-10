@@ -1,6 +1,6 @@
 package com.hacybeyker.finflow.feature.settings.ui
 
-import com.hacybeyker.finflow.feature.settings.domain.UserPreferences
+import com.hacybeyker.finflow.core.domain.UserPreferences
 
 /**
  * [isLoading] distinguishes "DataStore hasn't emitted yet" from real values: the app root must not

@@ -1,7 +1,7 @@
 package com.hacybeyker.finflow.feature.settings.domain.usecase
 
-import com.hacybeyker.finflow.feature.settings.domain.PreferencesRepository
-import com.hacybeyker.finflow.feature.settings.domain.UserPreferences
+import com.hacybeyker.finflow.core.domain.PreferencesRepository
+import com.hacybeyker.finflow.core.domain.UserPreferences
 import javax.inject.Inject
 import kotlinx.coroutines.flow.Flow
 

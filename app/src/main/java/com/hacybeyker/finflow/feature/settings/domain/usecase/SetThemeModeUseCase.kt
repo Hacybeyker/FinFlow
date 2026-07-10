@@ -1,7 +1,7 @@
 package com.hacybeyker.finflow.feature.settings.domain.usecase
 
-import com.hacybeyker.finflow.feature.settings.domain.PreferencesRepository
-import com.hacybeyker.finflow.feature.settings.domain.ThemeMode
+import com.hacybeyker.finflow.core.domain.PreferencesRepository
+import com.hacybeyker.finflow.core.domain.ThemeMode
 import javax.inject.Inject
 
 class SetThemeModeUseCase @Inject constructor(private val repository: PreferencesRepository) {

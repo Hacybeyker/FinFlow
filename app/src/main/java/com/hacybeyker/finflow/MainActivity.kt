@@ -14,10 +14,10 @@ import androidx.compose.ui.Modifier
 import androidx.fragment.app.FragmentActivity
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.hacybeyker.finflow.core.domain.ThemeMode
 import com.hacybeyker.finflow.core.ui.format.moneyFormatterFor
 import com.hacybeyker.finflow.core.ui.theme.FinFlowTheme
 import com.hacybeyker.finflow.feature.security.ui.AppLock
-import com.hacybeyker.finflow.feature.settings.domain.ThemeMode
 import com.hacybeyker.finflow.feature.settings.ui.SettingsViewModel
 import com.hacybeyker.finflow.navigation.FinFlowNavHost
 import dagger.hilt.android.AndroidEntryPoint

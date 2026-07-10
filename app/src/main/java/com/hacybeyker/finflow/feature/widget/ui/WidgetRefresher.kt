@@ -2,7 +2,7 @@ package com.hacybeyker.finflow.feature.widget.ui
 
 import android.content.Context
 import androidx.glance.appwidget.updateAll
-import com.hacybeyker.finflow.feature.settings.domain.PreferencesRepository
+import com.hacybeyker.finflow.core.domain.PreferencesRepository
 import com.hacybeyker.finflow.feature.widget.domain.usecase.GetWidgetSummaryUseCase
 import dagger.Lazy
 import dagger.hilt.android.qualifiers.ApplicationContext

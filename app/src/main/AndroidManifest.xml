@@ -2,6 +2,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
     <application
         android:name=".FinFlowApplication"
         android:allowBackup="true"
@@ -36,6 +38,19 @@
                 android:name="android.appwidget.provider"
                 android:resource="@xml/finflow_widget_info" />
         </receiver>
+
+        <!-- WorkManager must NOT self-initialize: FinFlowApplication provides the configuration
+             (HiltWorkerFactory). Removing only this entry keeps other androidx.startup users. -->
+        <provider
+            android:name="androidx.startup.InitializationProvider"
+            android:authorities="${applicationId}.androidx-startup"
+            android:exported="false"
+            tools:node="merge">
+            <meta-data
+                android:name="androidx.work.WorkManagerInitializer"
+                android:value="androidx.startup"
+                tools:node="remove" />
+        </provider>
     </application>
 
 </manifest>

@@ -1,5 +1,6 @@
-package com.hacybeyker.finflow.feature.settings.domain
+package com.hacybeyker.finflow.core.domain
 
+import java.time.LocalTime
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 
@@ -20,5 +21,13 @@ class FakePreferencesRepository(initial: UserPreferences = UserPreferences()) : 
 
     override suspend fun setAppLockEnabled(enabled: Boolean) {
         state.value = state.value.copy(appLockEnabled = enabled)
+    }
+
+    override suspend fun setReminderEnabled(enabled: Boolean) {
+        state.value = state.value.copy(reminderEnabled = enabled)
+    }
+
+    override suspend fun setReminderTime(time: LocalTime) {
+        state.value = state.value.copy(reminderTime = time)
     }
 }

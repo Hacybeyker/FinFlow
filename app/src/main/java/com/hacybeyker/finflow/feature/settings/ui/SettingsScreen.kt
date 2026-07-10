@@ -37,10 +37,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.hacybeyker.finflow.R
+import com.hacybeyker.finflow.core.domain.ThemeMode
+import com.hacybeyker.finflow.core.domain.UserPreferences
 import com.hacybeyker.finflow.core.ui.theme.FinFlowTheme
 import com.hacybeyker.finflow.core.ui.theme.spacing
-import com.hacybeyker.finflow.feature.settings.domain.ThemeMode
-import com.hacybeyker.finflow.feature.settings.domain.UserPreferences
+import java.time.LocalTime
 import java.util.Currency
 import java.util.Locale
 
@@ -59,6 +60,8 @@ fun SettingsScreen(onBack: () -> Unit, modifier: Modifier = Modifier, viewModel:
         onThemeModeSelected = viewModel::setThemeMode,
         onCurrencySelected = viewModel::setCurrency,
         onAppLockChanged = viewModel::setAppLockEnabled,
+        onReminderChanged = viewModel::setReminderEnabled,
+        onReminderTimeChanged = viewModel::setReminderTime,
         modifier = modifier
     )
 }
@@ -71,6 +74,8 @@ private fun SettingsContent(
     onThemeModeSelected: (ThemeMode) -> Unit,
     onCurrencySelected: (String?) -> Unit,
     onAppLockChanged: (Boolean) -> Unit,
+    onReminderChanged: (Boolean) -> Unit,
+    onReminderTimeChanged: (LocalTime) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Scaffold(
@@ -104,6 +109,14 @@ private fun SettingsContent(
 
             SectionTitle(stringResource(R.string.settings_section_security))
             SecuritySection(enabled = uiState.preferences.appLockEnabled, onChange = onAppLockChanged)
+
+            SectionTitle(stringResource(R.string.settings_section_reminder))
+            ReminderSection(
+                enabled = uiState.preferences.reminderEnabled,
+                time = uiState.preferences.reminderTime,
+                onEnabledChange = onReminderChanged,
+                onTimeChange = onReminderTimeChanged
+            )
         }
     }
 }
@@ -261,7 +274,9 @@ private fun SettingsPreview() {
             onBack = {},
             onThemeModeSelected = {},
             onCurrencySelected = {},
-            onAppLockChanged = {}
+            onAppLockChanged = {},
+            onReminderChanged = {},
+            onReminderTimeChanged = {}
         )
     }
 }

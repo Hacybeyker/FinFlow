@@ -36,6 +36,18 @@
     <string name="settings_section_security">Seguridad</string>
     <string name="settings_lock_title">Bloquear con biometría</string>
     <string name="settings_lock_subtitle">Pide desbloquear al abrir la app</string>
+    <string name="settings_section_reminder">Recordatorio</string>
+    <string name="settings_reminder_title">Recordatorio diario</string>
+    <string name="settings_reminder_subtitle">Una notificación para registrar tus movimientos</string>
+    <string name="settings_reminder_time">Hora del recordatorio</string>
+    <string name="settings_reminder_time_confirm">Aceptar</string>
+    <string name="settings_reminder_time_cancel">Cancelar</string>
+
+    <!-- Reminders -->
+    <string name="reminder_channel_name">Recordatorios</string>
+    <string name="reminder_channel_description">Recordatorio diario para registrar tus movimientos</string>
+    <string name="reminder_notification_title">¿Registraste tus movimientos de hoy?</string>
+    <string name="reminder_notification_text">Toma un minuto para anotar tus gastos e ingresos</string>
 
     <!-- Security / app lock -->
     <string name="lock_title">Desbloquea FinFlow</string>

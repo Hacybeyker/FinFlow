@@ -10,11 +10,11 @@ import androidx.glance.appwidget.SizeMode
 import androidx.glance.appwidget.provideContent
 import androidx.glance.currentState
 import androidx.glance.material3.ColorProviders
+import com.hacybeyker.finflow.core.domain.PreferencesRepository
 import com.hacybeyker.finflow.core.ui.format.MoneyFormatter
 import com.hacybeyker.finflow.core.ui.format.moneyFormatterFor
 import com.hacybeyker.finflow.core.ui.theme.DarkColorScheme
 import com.hacybeyker.finflow.core.ui.theme.LightColorScheme
-import com.hacybeyker.finflow.feature.settings.domain.PreferencesRepository
 import com.hacybeyker.finflow.feature.widget.domain.WidgetSummary
 import com.hacybeyker.finflow.feature.widget.domain.usecase.GetWidgetSummaryUseCase
 import dagger.hilt.EntryPoint

@@ -3,12 +3,15 @@ package com.hacybeyker.finflow.feature.settings.ui
 import androidx.compose.runtime.Stable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.hacybeyker.finflow.feature.settings.domain.ThemeMode
+import com.hacybeyker.finflow.core.domain.ThemeMode
+import com.hacybeyker.finflow.feature.reminders.domain.usecase.SetReminderEnabledUseCase
+import com.hacybeyker.finflow.feature.reminders.domain.usecase.SetReminderTimeUseCase
 import com.hacybeyker.finflow.feature.settings.domain.usecase.ObservePreferencesUseCase
 import com.hacybeyker.finflow.feature.settings.domain.usecase.SetAppLockEnabledUseCase
 import com.hacybeyker.finflow.feature.settings.domain.usecase.SetCurrencyUseCase
 import com.hacybeyker.finflow.feature.settings.domain.usecase.SetThemeModeUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import java.time.LocalTime
 import javax.inject.Inject
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -26,7 +29,9 @@ class SettingsViewModel @Inject constructor(
     observePreferences: ObservePreferencesUseCase,
     private val setThemeModeUseCase: SetThemeModeUseCase,
     private val setCurrencyUseCase: SetCurrencyUseCase,
-    private val setAppLockEnabledUseCase: SetAppLockEnabledUseCase
+    private val setAppLockEnabledUseCase: SetAppLockEnabledUseCase,
+    private val setReminderEnabledUseCase: SetReminderEnabledUseCase,
+    private val setReminderTimeUseCase: SetReminderTimeUseCase
 ) : ViewModel() {
 
     val uiState: StateFlow<SettingsUiState> = observePreferences()
@@ -42,6 +47,10 @@ class SettingsViewModel @Inject constructor(
     fun setCurrency(code: String?) = viewModelScope.launch { setCurrencyUseCase(code) }
 
     fun setAppLockEnabled(enabled: Boolean) = viewModelScope.launch { setAppLockEnabledUseCase(enabled) }
+
+    fun setReminderEnabled(enabled: Boolean) = viewModelScope.launch { setReminderEnabledUseCase(enabled) }
+
+    fun setReminderTime(time: LocalTime) = viewModelScope.launch { setReminderTimeUseCase(time) }
 
     private companion object {
         const val STOP_TIMEOUT_MILLIS = 5_000L

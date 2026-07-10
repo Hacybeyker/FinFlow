@@ -1,13 +1,17 @@
 package com.hacybeyker.finflow.feature.settings.ui
 
+import com.hacybeyker.finflow.core.domain.FakePreferencesRepository
+import com.hacybeyker.finflow.core.domain.ThemeMode
+import com.hacybeyker.finflow.core.domain.UserPreferences
 import com.hacybeyker.finflow.core.test.MainDispatcherRule
-import com.hacybeyker.finflow.feature.settings.domain.FakePreferencesRepository
-import com.hacybeyker.finflow.feature.settings.domain.ThemeMode
-import com.hacybeyker.finflow.feature.settings.domain.UserPreferences
+import com.hacybeyker.finflow.feature.reminders.domain.FakeReminderScheduler
+import com.hacybeyker.finflow.feature.reminders.domain.usecase.SetReminderEnabledUseCase
+import com.hacybeyker.finflow.feature.reminders.domain.usecase.SetReminderTimeUseCase
 import com.hacybeyker.finflow.feature.settings.domain.usecase.ObservePreferencesUseCase
 import com.hacybeyker.finflow.feature.settings.domain.usecase.SetAppLockEnabledUseCase
 import com.hacybeyker.finflow.feature.settings.domain.usecase.SetCurrencyUseCase
 import com.hacybeyker.finflow.feature.settings.domain.usecase.SetThemeModeUseCase
+import java.time.LocalTime
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.advanceUntilIdle
@@ -24,11 +28,15 @@ class SettingsViewModelTest {
     @get:Rule
     val mainDispatcherRule = MainDispatcherRule()
 
+    private val scheduler = FakeReminderScheduler()
+
     private fun viewModel(repository: FakePreferencesRepository) = SettingsViewModel(
         observePreferences = ObservePreferencesUseCase(repository),
         setThemeModeUseCase = SetThemeModeUseCase(repository),
         setCurrencyUseCase = SetCurrencyUseCase(repository),
-        setAppLockEnabledUseCase = SetAppLockEnabledUseCase(repository)
+        setAppLockEnabledUseCase = SetAppLockEnabledUseCase(repository),
+        setReminderEnabledUseCase = SetReminderEnabledUseCase(repository, scheduler),
+        setReminderTimeUseCase = SetReminderTimeUseCase(repository, scheduler)
     )
 
     @Test
@@ -81,5 +89,29 @@ class SettingsViewModelTest {
         advanceUntilIdle()
 
         assertFalse(viewModel.uiState.value.preferences.appLockEnabled)
+    }
+
+    @Test
+    fun `reminder toggle persists and schedules the work`() = runTest(mainDispatcherRule.testDispatcher.scheduler) {
+        val viewModel = viewModel(FakePreferencesRepository())
+        backgroundScope.launch { viewModel.uiState.collect {} }
+
+        viewModel.setReminderEnabled(true)
+        advanceUntilIdle()
+
+        assertTrue(viewModel.uiState.value.preferences.reminderEnabled)
+        assertEquals(UserPreferences.DefaultReminderTime, scheduler.scheduledTime)
+    }
+
+    @Test
+    fun `reminder time change persists and reschedules`() = runTest(mainDispatcherRule.testDispatcher.scheduler) {
+        val viewModel = viewModel(FakePreferencesRepository(UserPreferences(reminderEnabled = true)))
+        backgroundScope.launch { viewModel.uiState.collect {} }
+
+        viewModel.setReminderTime(LocalTime.of(8, 0))
+        advanceUntilIdle()
+
+        assertEquals(LocalTime.of(8, 0), viewModel.uiState.value.preferences.reminderTime)
+        assertEquals(LocalTime.of(8, 0), scheduler.scheduledTime)
     }
 }

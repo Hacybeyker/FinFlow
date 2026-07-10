@@ -2,9 +2,11 @@ package com.hacybeyker.finflow.feature.settings.data
 
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
-import com.hacybeyker.finflow.feature.settings.domain.ThemeMode
-import com.hacybeyker.finflow.feature.settings.domain.UserPreferences
+import com.hacybeyker.finflow.core.domain.ThemeMode
+import com.hacybeyker.finflow.core.domain.UserPreferences
+import java.time.LocalTime
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.TestScope
@@ -42,9 +44,17 @@ class DataStorePreferencesRepositoryTest {
         repository.setThemeMode(ThemeMode.DARK)
         repository.setCurrencyCode("PEN")
         repository.setAppLockEnabled(false)
+        repository.setReminderEnabled(true)
+        repository.setReminderTime(LocalTime.of(7, 45))
 
         assertEquals(
-            UserPreferences(themeMode = ThemeMode.DARK, currencyCode = "PEN", appLockEnabled = false),
+            UserPreferences(
+                themeMode = ThemeMode.DARK,
+                currencyCode = "PEN",
+                appLockEnabled = false,
+                reminderEnabled = true,
+                reminderTime = LocalTime.of(7, 45)
+            ),
             repository.observePreferences().first()
         )
     }
@@ -65,6 +75,7 @@ class DataStorePreferencesRepositoryTest {
         dataStore.edit { prefs ->
             prefs[stringPreferencesKey("theme_mode")] = "NEON" // not a ThemeMode
             prefs[stringPreferencesKey("currency_code")] = "NOPE" // not ISO 4217
+            prefs[intPreferencesKey("reminder_minute_of_day")] = 5_000 // > 1439, not a valid time
         }
         val repository = DataStorePreferencesRepository(dataStore)
 

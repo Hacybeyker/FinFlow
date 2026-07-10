@@ -1,5 +1,6 @@
-package com.hacybeyker.finflow.feature.settings.domain
+package com.hacybeyker.finflow.core.domain
 
+import java.time.LocalTime
 import kotlinx.coroutines.flow.Flow
 
 /**
@@ -13,4 +14,6 @@ interface PreferencesRepository {
     suspend fun setThemeMode(mode: ThemeMode)
     suspend fun setCurrencyCode(code: String?)
     suspend fun setAppLockEnabled(enabled: Boolean)
+    suspend fun setReminderEnabled(enabled: Boolean)
+    suspend fun setReminderTime(time: LocalTime)
 }
