@@ -1,16 +1,19 @@
 package com.hacybeyker.finflow.feature.settings.ui
 
 import com.hacybeyker.finflow.core.domain.FakePreferencesRepository
+import com.hacybeyker.finflow.core.domain.FakeTransactionRepository
 import com.hacybeyker.finflow.core.domain.ThemeMode
 import com.hacybeyker.finflow.core.domain.UserPreferences
 import com.hacybeyker.finflow.core.test.MainDispatcherRule
 import com.hacybeyker.finflow.feature.reminders.domain.FakeReminderScheduler
 import com.hacybeyker.finflow.feature.reminders.domain.usecase.SetReminderEnabledUseCase
 import com.hacybeyker.finflow.feature.reminders.domain.usecase.SetReminderTimeUseCase
+import com.hacybeyker.finflow.feature.settings.domain.FakeCsvSaver
 import com.hacybeyker.finflow.feature.settings.domain.usecase.ObservePreferencesUseCase
 import com.hacybeyker.finflow.feature.settings.domain.usecase.SetAppLockEnabledUseCase
 import com.hacybeyker.finflow.feature.settings.domain.usecase.SetCurrencyUseCase
 import com.hacybeyker.finflow.feature.settings.domain.usecase.SetThemeModeUseCase
+import com.hacybeyker.finflow.feature.transactions.domain.usecase.ExportTransactionsCsvUseCase
 import java.time.LocalTime
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.launch
@@ -30,14 +33,17 @@ class SettingsViewModelTest {
 
     private val scheduler = FakeReminderScheduler()
 
-    private fun viewModel(repository: FakePreferencesRepository) = SettingsViewModel(
-        observePreferences = ObservePreferencesUseCase(repository),
-        setThemeModeUseCase = SetThemeModeUseCase(repository),
-        setCurrencyUseCase = SetCurrencyUseCase(repository),
-        setAppLockEnabledUseCase = SetAppLockEnabledUseCase(repository),
-        setReminderEnabledUseCase = SetReminderEnabledUseCase(repository, scheduler),
-        setReminderTimeUseCase = SetReminderTimeUseCase(repository, scheduler)
-    )
+    private fun viewModel(repository: FakePreferencesRepository, csvSaver: FakeCsvSaver = FakeCsvSaver()) =
+        SettingsViewModel(
+            observePreferences = ObservePreferencesUseCase(repository),
+            setThemeModeUseCase = SetThemeModeUseCase(repository),
+            setCurrencyUseCase = SetCurrencyUseCase(repository),
+            setAppLockEnabledUseCase = SetAppLockEnabledUseCase(repository),
+            setReminderEnabledUseCase = SetReminderEnabledUseCase(repository, scheduler),
+            setReminderTimeUseCase = SetReminderTimeUseCase(repository, scheduler),
+            exportTransactionsCsv = ExportTransactionsCsvUseCase(FakeTransactionRepository()),
+            csvSaver = csvSaver
+        )
 
     @Test
     fun `starts loading and emits stored preferences`() = runTest(mainDispatcherRule.testDispatcher.scheduler) {
@@ -114,4 +120,31 @@ class SettingsViewModelTest {
         assertEquals(LocalTime.of(8, 0), viewModel.uiState.value.preferences.reminderTime)
         assertEquals(LocalTime.of(8, 0), scheduler.scheduledTime)
     }
+
+    @Test
+    fun `export writes the csv to the destination and reports success`() =
+        runTest(mainDispatcherRule.testDispatcher.scheduler) {
+            val csvSaver = FakeCsvSaver(result = true)
+            val viewModel = viewModel(FakePreferencesRepository(), csvSaver)
+
+            viewModel.exportTransactions("content://docs/mov.csv")
+            advanceUntilIdle()
+
+            assertEquals("content://docs/mov.csv", csvSaver.savedDestination)
+            assertEquals("date,category,type,amount,note\n", csvSaver.savedContent)
+            assertEquals(ExportResult.SUCCESS, viewModel.exportResult.value)
+        }
+
+    @Test
+    fun `a failed write reports error and the result can be consumed`() =
+        runTest(mainDispatcherRule.testDispatcher.scheduler) {
+            val viewModel = viewModel(FakePreferencesRepository(), FakeCsvSaver(result = false))
+
+            viewModel.exportTransactions("content://docs/mov.csv")
+            advanceUntilIdle()
+            assertEquals(ExportResult.ERROR, viewModel.exportResult.value)
+
+            viewModel.onExportResultShown()
+            assertEquals(null, viewModel.exportResult.value)
+        }
 }

@@ -8,6 +8,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 > **Change types:** `Added` (feature), `Fixed` (fix), `Changed` / `Enhancement` (improvement),
 > `Deprecated`, `Removed`, `Security`.
 
+## [0.11.0] - 2026-07-14
+
+### Added
+- **Export transactions to CSV:** a new **"Datos"** section in Settings saves every transaction to a
+  CSV file. The destination is picked with the **Storage Access Framework** (`CreateDocument`), so
+  the app needs no storage permission and only receives a write grant for that single document;
+  the suggested filename is `finflow-movimientos-<date>.csv`.
+- **`ExportTransactionsCsvUseCase`** (`feature/transactions/domain`): builds the CSV snapshot oldest
+  first (spreadsheet-friendly), with fields escaped per **RFC 4180** (free-text notes with commas,
+  quotes or line breaks get quoted, inner quotes doubled), ISO-8601 dates and signed plain-decimal
+  amounts — a spreadsheet `SUM()` over the amount column reproduces the balance.
+- **`CsvSaver` domain port** with a `ContentResolverCsvSaver` implementation that writes to the
+  user-picked document on `Dispatchers.IO`; any failure (revoked grant, provider gone, disk full)
+  reports `false` instead of throwing, and the screen turns the outcome into a success/error
+  **snackbar** (one-shot result acknowledged by the UI, never a crash).
+- **Unit tests (5 new, 79 total):** `ExportTransactionsCsvUseCaseTest` (ordering, escaping, amount
+  formatting) and the `SettingsViewModel` export flow (success writes to the destination, failure
+  reports an error, the result is consumable) against a `FakeCsvSaver`.
+
 ## [0.10.1] - 2026-07-09
 
 ### Changed

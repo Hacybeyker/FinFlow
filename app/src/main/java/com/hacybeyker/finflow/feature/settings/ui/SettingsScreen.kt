@@ -20,13 +20,17 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -54,14 +58,29 @@ private val SUPPORTED_CURRENCIES = listOf("PEN", "USD", "EUR", "MXN", "COP", "CL
 @Composable
 fun SettingsScreen(onBack: () -> Unit, modifier: Modifier = Modifier, viewModel: SettingsViewModel = hiltViewModel()) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val exportResult by viewModel.exportResult.collectAsStateWithLifecycle()
+    val snackbarHostState = remember { SnackbarHostState() }
+    val exportSuccessMessage = stringResource(R.string.settings_export_success)
+    val exportErrorMessage = stringResource(R.string.settings_export_error)
+
+    LaunchedEffect(exportResult) {
+        val result = exportResult ?: return@LaunchedEffect
+        snackbarHostState.showSnackbar(
+            if (result == ExportResult.SUCCESS) exportSuccessMessage else exportErrorMessage
+        )
+        viewModel.onExportResultShown()
+    }
+
     SettingsContent(
         uiState = uiState,
+        snackbarHostState = snackbarHostState,
         onBack = onBack,
         onThemeModeSelected = viewModel::setThemeMode,
         onCurrencySelected = viewModel::setCurrency,
         onAppLockChanged = viewModel::setAppLockEnabled,
         onReminderChanged = viewModel::setReminderEnabled,
         onReminderTimeChanged = viewModel::setReminderTime,
+        onExportTo = viewModel::exportTransactions,
         modifier = modifier
     )
 }
@@ -70,16 +89,19 @@ fun SettingsScreen(onBack: () -> Unit, modifier: Modifier = Modifier, viewModel:
 @Composable
 private fun SettingsContent(
     uiState: SettingsUiState,
+    snackbarHostState: SnackbarHostState,
     onBack: () -> Unit,
     onThemeModeSelected: (ThemeMode) -> Unit,
     onCurrencySelected: (String?) -> Unit,
     onAppLockChanged: (Boolean) -> Unit,
     onReminderChanged: (Boolean) -> Unit,
     onReminderTimeChanged: (LocalTime) -> Unit,
+    onExportTo: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Scaffold(
         modifier = modifier.fillMaxSize(),
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = { Text(stringResource(R.string.settings_title)) },
@@ -117,6 +139,9 @@ private fun SettingsContent(
                 onEnabledChange = onReminderChanged,
                 onTimeChange = onReminderTimeChanged
             )
+
+            SectionTitle(stringResource(R.string.settings_section_data))
+            ExportSection(onExportTo = onExportTo)
         }
     }
 }
@@ -271,12 +296,14 @@ private fun SettingsPreview() {
                 preferences = UserPreferences(themeMode = ThemeMode.DARK, currencyCode = "PEN"),
                 isLoading = false
             ),
+            snackbarHostState = remember { SnackbarHostState() },
             onBack = {},
             onThemeModeSelected = {},
             onCurrencySelected = {},
             onAppLockChanged = {},
             onReminderChanged = {},
-            onReminderTimeChanged = {}
+            onReminderTimeChanged = {},
+            onExportTo = {}
         )
     }
 }

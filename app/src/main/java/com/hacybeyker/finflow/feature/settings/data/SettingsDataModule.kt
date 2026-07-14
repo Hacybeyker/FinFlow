@@ -6,6 +6,7 @@ import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStoreFile
 import com.hacybeyker.finflow.core.domain.PreferencesRepository
+import com.hacybeyker.finflow.feature.settings.domain.CsvSaver
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
@@ -20,6 +21,9 @@ abstract class SettingsDataModule {
 
     @Binds
     abstract fun bindPreferencesRepository(impl: DataStorePreferencesRepository): PreferencesRepository
+
+    @Binds
+    abstract fun bindCsvSaver(impl: ContentResolverCsvSaver): CsvSaver
 
     companion object {
         // Singleton is mandatory: two DataStore instances over the same file throw at runtime.
