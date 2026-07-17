@@ -49,6 +49,15 @@ android {
     buildFeatures {
         compose = true
     }
+    testOptions {
+        unitTests {
+            // Robolectric inflates real resources (strings, themes) on the JVM.
+            isIncludeAndroidResources = true
+            all { test ->
+                test.maxHeapSize = "2g"
+            }
+        }
+    }
 }
 
 composeCompiler {
@@ -95,6 +104,12 @@ dependencies {
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.turbine)
+    testImplementation(platform(libs.androidx.compose.bom))
+    testImplementation(libs.androidx.compose.ui.test.junit4)
+    testImplementation(libs.androidx.junit)
+    testImplementation(libs.hilt.android.testing)
+    testImplementation(libs.robolectric)
+    kspTest(libs.hilt.compiler)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     androidTestImplementation(libs.androidx.espresso.core)
