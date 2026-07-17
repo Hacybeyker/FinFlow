@@ -30,7 +30,7 @@ android {
         minSdk = 26
         targetSdk = 36
         versionCode = 12
-        versionName = "0.12.0"
+        versionName = libs.versions.appVersion.get()
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -113,6 +113,9 @@ detekt {
 ktlint {
     android.set(true)
     ignoreFailures.set(false)
+    reporters {
+        reporter(org.jlleitschuh.gradle.ktlint.reporter.ReporterType.CHECKSTYLE)
+    }
 }
 
 tasks.register("codeQuality") {
@@ -129,6 +132,39 @@ tasks.register("formatAndAnalyze") {
     group = "verification"
     description = "Formatea el codigo (ktlintFormat) y luego verifica todo (ktlintCheck + detekt + lint)."
     dependsOn("ktlintFormat", "codeQuality")
+}
+
+sonar {
+    properties {
+        property("sonar.androidLint.reportPaths", "build/reports/lint-results-debug.xml")
+        property("sonar.kotlin.detekt.reportPaths", "build/reports/detekt/detekt.xml")
+        property(
+            "sonar.kotlin.ktlint.reportPaths",
+            listOf(
+                "build/reports/ktlint/ktlintKotlinScriptCheck/ktlintKotlinScriptCheck.xml",
+                "build/reports/ktlint/ktlintMainSourceSetCheck/ktlintMainSourceSetCheck.xml",
+                "build/reports/ktlint/ktlintTestSourceSetCheck/ktlintTestSourceSetCheck.xml",
+                "build/reports/ktlint/ktlintAndroidTestSourceSetCheck/ktlintAndroidTestSourceSetCheck.xml"
+            ).joinToString(",")
+        )
+        property("sonar.coverage.jacoco.xmlReportPaths", "build/reports/kover/reportDebug.xml")
+        property(
+            "sonar.coverage.exclusions",
+            listOf(
+                "**/ui/**",
+                "**/navigation/**",
+                "**/core/database/**",
+                "**/core/di/**",
+                "**/MainActivity.kt",
+                "**/FinFlowApplication.kt",
+                "**/feature/transactions/data/RoomTransactionRepository.kt",
+                "**/feature/transactions/data/RoomCategoryRepository.kt",
+                "**/feature/settings/data/ContentResolverCsvSaver.kt",
+                "**/feature/reminders/data/WorkManagerReminderScheduler.kt",
+                "**/feature/reminders/data/ReminderWorker.kt"
+            ).joinToString(",")
+        )
+    }
 }
 
 kover {
