@@ -1,6 +1,7 @@
 package com.hacybeyker.finflow.feature.transactions.ui.home
 
 import android.content.res.Configuration
+import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -156,16 +157,18 @@ private fun HomeContent(
                         monthExpense = uiState.monthExpense,
                         collapseFraction = { heroState.fraction }
                     )
-                    if (uiState.months.isEmpty()) {
-                        EmptyState()
-                    } else {
-                        TransactionList(
-                            months = uiState.months,
-                            bottomInset = innerPadding.calculateBottomPadding(),
-                            onEdit = onEditTransaction,
-                            onDelete = onDeleteTransaction,
-                            modifier = Modifier.padding(top = MaterialTheme.spacing.sm)
-                        )
+                    Crossfade(targetState = uiState.months.isEmpty(), label = "homeList") { isEmpty ->
+                        if (isEmpty) {
+                            EmptyState()
+                        } else {
+                            TransactionList(
+                                months = uiState.months,
+                                bottomInset = innerPadding.calculateBottomPadding(),
+                                onEdit = onEditTransaction,
+                                onDelete = onDeleteTransaction,
+                                modifier = Modifier.padding(top = MaterialTheme.spacing.sm)
+                            )
+                        }
                     }
                 }
             }
@@ -236,7 +239,8 @@ private fun TransactionList(
                 SwipeableTransactionRow(
                     transaction = transaction,
                     onEdit = { onEdit(transaction.id) },
-                    onDelete = { onDelete(transaction) }
+                    onDelete = { onDelete(transaction) },
+                    modifier = Modifier.animateItem()
                 )
             }
         }

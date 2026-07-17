@@ -1,6 +1,7 @@
 package com.hacybeyker.finflow.feature.transactions.ui.categories
 
 import android.content.res.Configuration
+import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -104,18 +105,12 @@ private fun CategoriesContent(
                 .padding(innerPadding)
                 .padding(MaterialTheme.spacing.screen)
         ) {
-            if (uiState.categories.isEmpty() && !uiState.isLoading) {
-                Text(
-                    text = stringResource(R.string.categories_empty),
-                    style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.align(Alignment.Center)
+            if (!uiState.isLoading) {
+                CategoryListOrEmpty(
+                    categories = uiState.categories,
+                    onRename = onRename,
+                    onDelete = onDelete
                 )
-            } else {
-                LazyColumn(verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.sm)) {
-                    items(uiState.categories, key = { it.id }) { category ->
-                        CategoryRow(category = category, onRename = onRename, onDelete = onDelete)
-                    }
-                }
             }
         }
     }
@@ -128,6 +123,39 @@ private fun CategoriesContent(
         onSubmitRename = onSubmitRename,
         onConfirmDelete = onConfirmDelete
     )
+}
+
+@Composable
+private fun CategoryListOrEmpty(
+    categories: List<Category>,
+    onRename: (Category) -> Unit,
+    onDelete: (Category) -> Unit
+) {
+    Crossfade(
+        targetState = categories.isEmpty(),
+        modifier = Modifier.fillMaxSize(),
+        label = "categoriesList"
+    ) { isEmpty ->
+        if (isEmpty) {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Text(
+                    text = stringResource(R.string.categories_empty),
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            }
+        } else {
+            LazyColumn(verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.sm)) {
+                items(categories, key = { it.id }) { category ->
+                    CategoryRow(
+                        category = category,
+                        onRename = onRename,
+                        onDelete = onDelete,
+                        modifier = Modifier.animateItem()
+                    )
+                }
+            }
+        }
+    }
 }
 
 @Composable
@@ -172,9 +200,14 @@ private fun CategoryDialogs(
 }
 
 @Composable
-private fun CategoryRow(category: Category, onRename: (Category) -> Unit, onDelete: (Category) -> Unit) {
+private fun CategoryRow(
+    category: Category,
+    onRename: (Category) -> Unit,
+    onDelete: (Category) -> Unit,
+    modifier: Modifier = Modifier
+) {
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(

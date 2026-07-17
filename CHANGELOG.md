@@ -8,6 +8,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 > **Change types:** `Added` (feature), `Fixed` (fix), `Changed` / `Enhancement` (improvement),
 > `Deprecated`, `Removed`, `Security`.
 
+## [0.12.0] - 2026-07-17
+
+### Added
+- **Daily log reminder (`feature/reminders/`):** a Settings toggle plus an M3 time picker schedule a
+  daily notification nudging you to log the day's movements. WorkManager unique periodic work (24 h
+  with an initial delay to the chosen hour, `CANCEL_AND_REENQUEUE` so changing the time reschedules
+  the clock) posts it via a `@HiltWorker`; `POST_NOTIFICATIONS` is requested in context when the
+  toggle turns on (API 33+), and the worker re-checks the toggle before notifying so a stale enqueue
+  can never fire a disabled reminder. `UserPreferences`/`ThemeMode`/`PreferencesRepository` moved to
+  `core/domain` (settings, widget, root and reminders all consume them). Shipped in `308682e`,
+  before the 0.11.0 release commit, but undocumented until now.
+
+### Enhancement
+- **Cross-feature list/empty-state polish (Slice 7, closing sub-step):** transaction rows in Home
+  and category rows in the categories screen animate in/out/reposition with `Modifier.animateItem()`
+  (undo-restored or newly added rows slide into place instead of popping), and the switch between
+  the empty message and the populated list now crossfades (`Crossfade`) instead of cutting instantly.
+  The spending-by-category donut applies the same crossfade between its "sin gastos" hint and the
+  chart.
+
 ## [0.11.0] - 2026-07-14
 
 ### Added

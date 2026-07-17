@@ -1,6 +1,7 @@
 package com.hacybeyker.finflow.feature.charts.ui
 
 import android.content.res.Configuration
+import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -72,10 +73,12 @@ private fun ChartsContent(uiState: ChartsUiState, onBack: () -> Unit, modifier: 
                 verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.md)
             ) {
                 ChartCard(title = stringResource(R.string.charts_spending_title)) {
-                    if (uiState.spending.isEmpty()) {
-                        EmptyHint(stringResource(R.string.charts_spending_empty))
-                    } else {
-                        SpendingDonut(spending = uiState.spending, modifier = Modifier.fillMaxWidth())
+                    Crossfade(targetState = uiState.spending.isEmpty(), label = "spendingDonut") { isEmpty ->
+                        if (isEmpty) {
+                            EmptyHint(stringResource(R.string.charts_spending_empty))
+                        } else {
+                            SpendingDonut(spending = uiState.spending, modifier = Modifier.fillMaxWidth())
+                        }
                     }
                 }
                 ChartCard(title = stringResource(R.string.charts_monthly_title)) {
