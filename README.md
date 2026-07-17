@@ -12,6 +12,7 @@
 ![Min SDK 26](https://img.shields.io/badge/minSdk-26-3DDC84?style=flat&logo=android&logoColor=white)
 ![Offline-First](https://img.shields.io/badge/Offline--First-✓-success?style=flat)
 ![Encrypted](https://img.shields.io/badge/SQLCipher-Encrypted-critical?style=flat&logo=securitytrustcorp&logoColor=white)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=com.hacybeyker.finflow&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=com.hacybeyker.finflow)
 ![License MIT](https://img.shields.io/badge/License-MIT-yellow?style=flat)
 
 </div>
