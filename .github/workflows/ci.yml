@@ -14,6 +14,8 @@ jobs:
   verify:
     name: Verify (codeQuality + test + coverage + screenshots + Sonar)
     runs-on: ubuntu-latest
+    env:
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -37,9 +39,7 @@ jobs:
         run: ./gradlew testDebugUnitTest koverVerifyDebug verifyRoborazziDebug --no-daemon --stacktrace
 
       - name: SonarCloud analysis
-        if: ${{ secrets.SONAR_TOKEN != '' }}
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        if: ${{ env.SONAR_TOKEN != '' }}
         run: ./gradlew sonar --no-daemon --stacktrace
 
       - name: Upload reports
