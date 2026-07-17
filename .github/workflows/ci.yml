@@ -41,6 +41,8 @@ jobs:
 
       - name: SonarCloud analysis
         if: ${{ env.SONAR_TOKEN != '' }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: ./gradlew sonar --no-daemon --stacktrace
 
       - name: Upload reports
