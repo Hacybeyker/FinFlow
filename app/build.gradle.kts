@@ -7,6 +7,7 @@ plugins {
     alias(libs.plugins.ksp)
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.kover)
+    alias(libs.plugins.roborazzi)
 }
 
 android {
@@ -109,6 +110,8 @@ dependencies {
     testImplementation(libs.androidx.junit)
     testImplementation(libs.hilt.android.testing)
     testImplementation(libs.robolectric)
+    testImplementation(libs.roborazzi)
+    testImplementation(libs.roborazzi.compose)
     kspTest(libs.hilt.compiler)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
@@ -147,6 +150,12 @@ tasks.register("formatAndAnalyze") {
     group = "verification"
     description = "Formatea el codigo (ktlintFormat) y luego verifica todo (ktlintCheck + detekt + lint)."
     dependsOn("ktlintFormat", "codeQuality")
+}
+
+roborazzi {
+    // Goldens live in the repo: verifyRoborazziDebug diffs against them, recordRoborazziDebug
+    // re-baselines after an intentional visual change.
+    outputDir.set(file("src/test/screenshots"))
 }
 
 sonar {
