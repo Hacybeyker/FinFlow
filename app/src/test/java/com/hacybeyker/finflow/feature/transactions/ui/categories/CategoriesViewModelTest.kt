@@ -59,14 +59,63 @@ class CategoriesViewModelTest {
         }
 
     @Test
-    fun `deletes a category`() = runTest(mainDispatcherRule.testDispatcher.scheduler) {
+    fun `renames a category and closes the dialog`() = runTest(mainDispatcherRule.testDispatcher.scheduler) {
+        val viewModel = viewModel(FakeCategoryRepository(listOf(category(id = 1, name = "Comida"))))
+        backgroundScope.launch { viewModel.uiState.collect {} }
+
+        viewModel.openRename(category(id = 1, name = "Comida"))
+        viewModel.submitRename(category(id = 1, name = "Comida"), "Mercado")
+        advanceUntilIdle()
+
+        val state = viewModel.uiState.value
+        assertEquals(listOf("Mercado"), state.categories.map { it.name })
+        assertEquals(CategoryDialog.Hidden, state.dialog)
+    }
+
+    @Test
+    fun `renaming to an existing name surfaces an error and keeps the dialog open`() =
+        runTest(mainDispatcherRule.testDispatcher.scheduler) {
+            val viewModel = viewModel(
+                FakeCategoryRepository(listOf(category(id = 1, name = "Comida"), category(id = 2, name = "Ocio")))
+            )
+            backgroundScope.launch { viewModel.uiState.collect {} }
+
+            viewModel.openRename(category(id = 2, name = "Ocio"))
+            viewModel.submitRename(category(id = 2, name = "Ocio"), "comida")
+            advanceUntilIdle()
+
+            val state = viewModel.uiState.value
+            assertEquals(CategoryNameError.DUPLICATE, state.nameError)
+            assertEquals(CategoryDialog.Rename(category(id = 2, name = "Ocio")), state.dialog)
+        }
+
+    @Test
+    fun `deletes a category after asking for confirmation`() = runTest(mainDispatcherRule.testDispatcher.scheduler) {
         val repository = FakeCategoryRepository(listOf(category(id = 1, name = "Comida")))
         val viewModel = viewModel(repository)
         backgroundScope.launch { viewModel.uiState.collect {} }
+
+        viewModel.openDelete(category(id = 1, name = "Comida"))
+        advanceUntilIdle()
+        assertEquals(CategoryDialog.ConfirmDelete(category(id = 1, name = "Comida")), viewModel.uiState.value.dialog)
 
         viewModel.confirmDelete(category(id = 1, name = "Comida"))
         advanceUntilIdle()
 
         assertTrue(viewModel.uiState.value.categories.isEmpty())
+        assertEquals(CategoryDialog.Hidden, viewModel.uiState.value.dialog)
+    }
+
+    @Test
+    fun `a blank name surfaces an invalid-name error`() = runTest(mainDispatcherRule.testDispatcher.scheduler) {
+        val viewModel = viewModel(FakeCategoryRepository())
+        backgroundScope.launch { viewModel.uiState.collect {} }
+
+        viewModel.openAdd()
+        viewModel.submitAdd("   ")
+        advanceUntilIdle()
+
+        assertEquals(CategoryNameError.INVALID, viewModel.uiState.value.nameError)
+        assertEquals(CategoryDialog.Add, viewModel.uiState.value.dialog)
     }
 }

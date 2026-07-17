@@ -148,4 +148,33 @@ class AddTransactionViewModelTest {
         assertEquals("Comida", viewModel.uiState.value.selectedCategory?.name)
         assertEquals(listOf("Comida"), catRepo.observeAll().first().map { it.name })
     }
+
+    @Test
+    fun `creating a duplicate category selects the existing one instead of adding a copy`() =
+        runTest(mainDispatcherRule.testDispatcher.scheduler) {
+            val catRepo = FakeCategoryRepository(listOf(category(id = 1, name = "Comida")))
+            val viewModel = viewModel(FakeTransactionRepository(), catRepo)
+            backgroundScope.launch { viewModel.uiState.collect {} }
+            advanceUntilIdle()
+
+            viewModel.onIntent(AddTransactionIntent.CreateCategory("comida"))
+            advanceUntilIdle()
+
+            assertEquals(1L, viewModel.uiState.value.selectedCategory?.id)
+            assertEquals(listOf("Comida"), catRepo.observeAll().first().map { it.name })
+        }
+
+    @Test
+    fun `creating a category with a blank name changes nothing`() =
+        runTest(mainDispatcherRule.testDispatcher.scheduler) {
+            val catRepo = FakeCategoryRepository()
+            val viewModel = viewModel(FakeTransactionRepository(), catRepo)
+            backgroundScope.launch { viewModel.uiState.collect {} }
+
+            viewModel.onIntent(AddTransactionIntent.CreateCategory("   "))
+            advanceUntilIdle()
+
+            assertEquals(null, viewModel.uiState.value.selectedCategory)
+            assertTrue(catRepo.observeAll().first().isEmpty())
+        }
 }

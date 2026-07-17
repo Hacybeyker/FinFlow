@@ -6,6 +6,7 @@ plugins {
     alias(libs.plugins.hilt)
     alias(libs.plugins.ksp)
     alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.kover)
 }
 
 android {
@@ -128,4 +129,42 @@ tasks.register("formatAndAnalyze") {
     group = "verification"
     description = "Formatea el codigo (ktlintFormat) y luego verifica todo (ktlintCheck + detekt + lint)."
     dependsOn("ktlintFormat", "codeQuality")
+}
+
+kover {
+    reports {
+        filters {
+            includes {
+                classes(
+                    "com.hacybeyker.finflow.*.domain.*",
+                    "com.hacybeyker.finflow.*.data.*",
+                    "com.hacybeyker.finflow.*ViewModel*"
+                )
+            }
+            excludes {
+                classes(
+                    "*_Impl",
+                    "*_Impl$*",
+                    "*_Factory",
+                    "*_Factory$*",
+                    "*Module",
+                    "*Module$*",
+                    "*Module_*",
+                    "*_HiltModules*"
+                )
+                classes(
+                    "com.hacybeyker.finflow.feature.transactions.data.RoomTransactionRepository",
+                    "com.hacybeyker.finflow.feature.transactions.data.RoomCategoryRepository",
+                    "com.hacybeyker.finflow.feature.settings.data.ContentResolverCsvSaver*",
+                    "com.hacybeyker.finflow.feature.reminders.data.WorkManagerReminderScheduler",
+                    "com.hacybeyker.finflow.feature.reminders.data.ReminderWorker*"
+                )
+            }
+        }
+        verify {
+            rule("Line coverage of measured classes (domain, data, ViewModels)") {
+                minBound(95)
+            }
+        }
+    }
 }
