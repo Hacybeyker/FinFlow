@@ -93,7 +93,7 @@ dependencies {
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
     implementation(libs.sqlcipher.android)
-    implementation(libs.androidx.security.crypto)
+    implementation(libs.tink.android)
     implementation(libs.androidx.biometric)
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.androidx.glance.appwidget)
