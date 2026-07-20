@@ -39,10 +39,8 @@ android {
     buildTypes {
         release {
             optimization {
+                // Extra R8 rules live in src/main/keepRules/ (AGP 9.x source-folder convention).
                 enable = true
-                keepRules {
-                    files.add(file("proguard-rules.pro"))
-                }
             }
         }
     }

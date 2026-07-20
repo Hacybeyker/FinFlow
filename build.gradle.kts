@@ -19,6 +19,8 @@ sonar {
                 "biometric lock, encrypted local database, home-screen widget and CSV export."
         )
         property("sonar.projectVersion", libs.versions.appVersion.get())
+        property("sonar.sourceEncoding", "UTF-8")
+        property("sonar.exclusions", "**/*.webp,**/*.png,**/*.jar")
         // CI fails the job if SonarCloud's Quality Gate doesn't pass (polls the API after upload).
         property("sonar.qualitygate.wait", "true")
     }

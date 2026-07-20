@@ -1,0 +1,2 @@
+# Project-specific R8 keep rules (AGP 9.x keepRules source folder; files must use .keep).
+# Library rules (Room, Hilt, Glance, SQLCipher, WorkManager) ship in their own consumer-rules.pro.
