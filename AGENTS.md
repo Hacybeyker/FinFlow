@@ -206,20 +206,6 @@ than accumulating a large backlog of unreleased changes.
   decision, a warning, or something counterintuitive (e.g. "no dispatcher because Room already threads").
 - Dependencies **always** in the Version Catalog (`gradle/libs.versions.toml`), referenced with
   `libs.*`. Never inline versions in `build.gradle.kts`.
-- **After bumping any dependency version, regenerate `gradle/verification-metadata.xml`** — the
-  project enforces Gradle dependency verification (checksum-pinned lockfile; see cuaderno S8·2 for
-  the full rationale). A version bump alone makes the next build/sync fail with "Dependency
-  verification failed" until the new artifact's hash is recorded. Fix, in order:
-  1. Edit the version in `gradle/libs.versions.toml`.
-  2. From a terminal (not the IDE): `./gradlew --write-verification-metadata sha256 codeQuality
-     testDebugUnitTest koverVerifyDebug verifyRoborazziDebug` — this resolves (downloads) the new
-     artifacts and records their hashes in one step; you never compute a checksum by hand.
-  3. Only then sync in Android Studio. Syncing *before* running that command reproduces the same
-     failure, since the IDE's own resolution pass happens independently of the terminal's.
-  - Old entries for the previous version are left behind (harmless, unused) — no need to prune them.
-  - `-sources.jar` / `-javadoc.jar` / `-src.zip` variants (IDE-only, never compiled or executed) are
-    already trusted by filename pattern in the `<trusted-artifacts>` block — a version bump alone
-    won't re-trigger that class of failure; only genuinely new binary artifacts need fresh hashes.
 
 ---
 

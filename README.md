@@ -58,11 +58,6 @@ FinFlow tracks **income and expenses while working 100% offline**. You log trans
 | Instrumented tests | `./gradlew connectedAndroidTest` |
 
 > 💡 Before every commit: `./gradlew formatAndAnalyze`.
->
-> 💡 **After bumping any dependency version** in `libs.versions.toml`, the next build/sync fails
-> until the new artifact's checksum is recorded (dependency verification is enabled — see
-> `gradle/verification-metadata.xml`). Fix, **from a terminal, before syncing in the IDE**:
-> `./gradlew --write-verification-metadata sha256 codeQuality testDebugUnitTest koverVerifyDebug verifyRoborazziDebug`.
 
 ## 🗂️ Structure
 
@@ -74,7 +69,6 @@ FinFlow/
 │   └── ui/       # Compose screens, ViewModels (MVI) and theme
 ├── config/detekt/             # detekt configuration
 ├── gradle/libs.versions.toml  # Version Catalog (dependencies SSOT)
-├── gradle/verification-metadata.xml # Dependency checksums lockfile (regenerate after version bumps)
 ├── lint.xml · .editorconfig   # Lint rules and code style
 ├── CHANGELOG.md               # Version history
 ├── DESIGN.md                  # Design system (colors, typography, spacing, components)
