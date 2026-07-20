@@ -8,8 +8,8 @@ import dagger.hilt.components.SingletonComponent
 
 @Module
 @InstallIn(SingletonComponent::class)
-abstract class TransactionDataModule {
+interface TransactionDataModule {
 
     @Binds
-    abstract fun bindTransactionRepository(impl: RoomTransactionRepository): TransactionRepository
+    fun bindTransactionRepository(impl: RoomTransactionRepository): TransactionRepository
 }

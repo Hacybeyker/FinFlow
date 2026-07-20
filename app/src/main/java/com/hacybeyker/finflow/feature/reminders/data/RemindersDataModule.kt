@@ -8,8 +8,8 @@ import dagger.hilt.components.SingletonComponent
 
 @Module
 @InstallIn(SingletonComponent::class)
-abstract class RemindersDataModule {
+interface RemindersDataModule {
 
     @Binds
-    abstract fun bindReminderScheduler(impl: WorkManagerReminderScheduler): ReminderScheduler
+    fun bindReminderScheduler(impl: WorkManagerReminderScheduler): ReminderScheduler
 }

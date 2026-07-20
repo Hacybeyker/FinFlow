@@ -8,8 +8,8 @@ import dagger.hilt.components.SingletonComponent
 
 @Module
 @InstallIn(SingletonComponent::class)
-abstract class CategoryDataModule {
+interface CategoryDataModule {
 
     @Binds
-    abstract fun bindCategoryRepository(impl: RoomCategoryRepository): CategoryRepository
+    fun bindCategoryRepository(impl: RoomCategoryRepository): CategoryRepository
 }

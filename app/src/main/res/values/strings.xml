@@ -6,7 +6,6 @@
     <string name="home_month_income">Ingresos del mes</string>
     <string name="home_month_expense">Gastos del mes</string>
     <string name="home_empty">Aún no tienes movimientos</string>
-    <string name="home_add_transaction">Agregar movimiento</string>
     <string name="home_add">Agregar</string>
     <string name="home_empty_hint">Toca «Agregar» para registrar tu primer ingreso o gasto</string>
     <string name="home_manage_categories">Categorías</string>
