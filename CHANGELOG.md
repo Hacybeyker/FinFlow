@@ -8,6 +8,44 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 > **Change types:** `Added` (feature), `Fixed` (fix), `Changed` / `Enhancement` (improvement),
 > `Deprecated`, `Removed`, `Security`.
 
+## [1.0.0] - 2026-07-21
+
+First public release. 🎉
+
+### Added
+- **Three-layer test suite with CI gates (93 tests):** unit tests with hand-rolled fakes, **Robolectric**
+  UI-flow tests running the real Compose UI on the JVM (edit-from-row and swipe-delete+undo, backed by
+  an in-memory Room without SQLCipher and a `HiltTestApplication`), and **Roborazzi** screenshot tests
+  guarding the charts with versioned goldens (donut and bars × light/dark in
+  `app/src/test/screenshots/`) — `verifyRoborazziDebug` fails CI on a single unrecorded pixel.
+- **Coverage gate (Kover):** ≥95% line coverage enforced on the classes that hold behavior (domain,
+  data, ViewModels; codegen and framework adapters excluded by design). Current: 99.5%.
+- **SonarCloud analysis wired into CI** with a blocking Quality Gate (`sonar.qualitygate.wait`),
+  fed by lint/detekt/ktlint/Kover reports; a **Gradle Build Scan** is published per CI run for build
+  diagnostics, and the reports artifact now bundles the Roborazzi goldens so the downloaded HTML
+  report is self-contained.
+- **Final README:** architecture diagram (vertical slices), quality-gates pipeline, key technical
+  decisions with their rationale, and the chart goldens embedded as living screenshots.
+
+### Changed
+- **Toolchain refresh:** AGP 9.2.1 → **9.3.0**, Kotlin 2.4.0 → **2.4.10**, KSP → 2.3.10.
+  R8 keep rules migrated from the deprecated `keepRules.files` DSL to the AGP 9 **`keepRules` source
+  folder** (`app/src/main/keepRules/finflow.keep`).
+- **Sonar analysis hygiene:** explicit `sonar.sourceEncoding=UTF-8` and binary assets
+  (webp/png/jar) excluded from indexing — clears the "file encoding" analysis warning.
+- `ContentResolverCsvSaver` now receives its dispatcher via Hilt (`@IoDispatcher`) instead of
+  hardcoding `Dispatchers.IO`, and single-`@Binds` Hilt modules became `interface`s.
+
+### Security
+- **`DatabaseKey` migrated to Tink:** the SQLCipher passphrase is now sealed directly with
+  **Tink AEAD (AES-GCM) + Android Keystore**, replacing the deprecated
+  `MasterKey`/`EncryptedSharedPreferences` wrappers; `androidx.security:security-crypto` is removed
+  and `tink-android` (1.23.0) becomes an explicit dependency. Public surface unchanged.
+- **R8 enabled for release builds** (shrinking + obfuscation) via the AGP 9 `optimization` DSL.
+- **GitHub Actions pinned to full commit SHAs** (mutable version tags are a supply-chain vector);
+  Dependabot-compatible `# vN` comments keep updates automated.
+- Manifest hardening: explicit `usesCleartextTraffic="false"` (the app is 100% offline).
+
 ## [0.12.0] - 2026-07-17
 
 ### Added
