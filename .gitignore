@@ -16,3 +16,7 @@
 .cxx
 local.properties
 .scannerwork/
+
+# AI agents: hb-implement reports and personal Claude Code settings
+reports/
+.claude/settings.local.json
