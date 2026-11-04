@@ -1,277 +1,171 @@
-# AGENTS.md
+# FinFlow
 
-Guide for AI agents (Claude Code, Gemini in Android Studio, Cursor, Copilot, etc.) that
-contribute to **FinFlow**. Follows the [agents.md](https://agents.md/) standard.
+Offline-first personal finance app for Android: income and expenses by category, balance, charts, a
+home-screen widget, daily reminders and CSV export. There is **no backend**: the encrypted Room database
+on the device is the single source of truth. Product overview in [README.md](README.md); visual design
+system in [DESIGN.md](DESIGN.md).
 
-This file defines **the standards, architecture and best practices** used to implement any change
-in the repository. For the product vision and user-facing commands, see [README.md](README.md); for
-the visual design system (colors, typography, spacing, components), see [DESIGN.md](DESIGN.md).
+This file is self-contained: everything an agent or a person needs to work on FinFlow is here. The
+`hb-*` skills from [Hacybeyker/agent-skills](https://github.com/Hacybeyker/agent-skills) are optional;
+when installed, they add the general Android/Kotlin practices of the profile below.
 
----
+## Stack
 
-## Project overview
-
-FinFlow is an Android app for **offline-first personal finance**: logging income/expenses by
-category, balance and charts, with a **locally encrypted database** and **biometric** unlock.
-**There's no backend**: the Room database is the **single source of truth** (SSOT).
-
-- **Language:** Kotlin · **UI:** Jetpack Compose + Material 3 · **DI:** Hilt
-- **Architecture:** **Vertical Slice Architecture** (feature-first packaging) + Clean Architecture
-  dependency rule + **MVI** (one immutable state per screen)
-- **Reactive state:** Coroutines + Flow / StateFlow
-- **Data:** Room (+ KSP) over SQLCipher · **Preferences:** DataStore
-- **Security:** Android Keystore + `androidx.biometric`
-- **System:** Glance (widget) + WorkManager (background)
-- **package:** `com.hacybeyker.finflow`
-
----
-
-## Architecture — Vertical Slice + Clean dependency rule
-
-Two **orthogonal** concerns, both mandatory:
-
-1. **Packaging = Vertical Slice Architecture (feature-first).** Code is grouped **by feature**, not by
-   technical layer. Everything a feature needs (its three layers) lives together under `feature/<name>/`.
-2. **Dependency rule = Clean Architecture.** Inside every slice, dependencies point **toward the
-   domain**: **`ui → domain ← data`**.
-
-These do not compete: VSA decides *how files are grouped*; Clean decides *who may depend on whom*.
-
-```
-app/src/main/java/com/hacybeyker/finflow/
-├── core/                     # SHARED across features (only what ≥2 features truly need)
-│   ├── domain/               #   cross-cutting domain types (e.g. Money value class)
-│   ├── database/             #   FinFlowDatabase (@Database aggregates all DAOs), Room/SQLCipher, Hilt DB module
-│   └── ui/theme/             #   design tokens (Color, Spacing, Type, Shape, Theme)
-├── feature/
-│   └── <feature>/            # one vertical slice per business capability
-│       ├── domain/           #   models, use cases, repository interfaces. PURE Kotlin (no Android).
-│       ├── data/             #   @Entity + DAO (contributed to core DB), mappers, repository impl, Hilt module
-│       └── ui/               #   Compose screens, ViewModels (MVI), UiState/intents
-└── navigation/               # cross-feature NavHost + nav keys
-```
-
-Dependency rule (**per slice**): **`ui → domain ← data`**.
-
-- The **domain knows nothing** about Android, Room, Compose or Hilt; it imports no framework code.
-- The **UI depends on the domain** (use cases and interfaces), **never** on `data` directly.
-- **`data` implements** the interfaces declared in `domain` (dependency inversion).
-- The entity↔domain **mappers** live in `data`. A domain model never exposes an `@Entity`.
-- Each layer has its **own model**: entity (data) ↔ domain model ↔ UI state. Entities are never
-  leaked to the UI.
-
-**VSA rules:**
-- A *feature* is a **business capability** (transactions, charts, security…), never a single widget.
-- **One feature never imports another feature's internals.** Cross-feature collaboration goes through
-  `core/` or the `domain` contracts.
-- **Promote to `core/` only when ≥2 features genuinely need it** (YAGNI). Until then, keep it local to
-  its feature. Cheap duplication beats premature coupling.
-- The Room **`@Database` is inherently cross-feature** (one `.db`, aggregates every DAO, global
-  migrations) → it lives in `core/database/`; each feature **contributes** its `@Entity` + DAO.
-- Single Gradle module with feature packages (not multi-module) — a deliberate, revisitable choice.
-
----
-
-## SOLID principles (how they apply here)
-
-- **S — Single responsibility:** one use case = one business operation (`AddTransaction`,
-  `GetBalance`). ViewModels orchestrate UI state; they hold no persistence logic. Composables
-  only render state and emit intents.
-- **O — Open/closed:** extend via new use cases or new interface implementations, without modifying
-  existing ones. Avoid giant `when` statements over types that keep growing.
-- **L — Liskov substitution:** repository fakes/mocks must honor the contract of the domain
-  interface so tests stay reliable.
-- **I — Interface segregation:** small, cohesive repositories
-  (`TransactionRepository`, `CategoryRepository`, `PreferencesRepository`), not a mega-repository.
-- **D — Dependency inversion:** the domain defines interfaces; `data` implements them; Hilt wires
-  them. The UI depends on abstractions (use cases/interfaces), not on implementations.
-
----
-
-## Implementation patterns and rules (mandatory)
-
-- **MVI per screen:** each screen exposes a single **immutable** `StateFlow<XxxUiState>` from the
-  ViewModel. Interactions come in as **intents** (`sealed interface`), not by calling loose
-  ViewModel methods ad-hoc. Explicit states: `loading / empty / content / error`.
-- **SSOT with Room:** DAOs return `Flow`. The UI **reacts** to the Flow; it doesn't refresh by hand
-  or keep caches parallel to the DB.
-- **Business logic in `domain`:** calculations (balance, aggregates) and validations live in use
-  cases or the ViewModel, **never in Composables**. Form validation goes in the ViewModel.
-- **Coroutines:** use `viewModelScope`; expose state with `StateFlow`; combine flows with
-  `combine` / `flatMapLatest`. **Inject** the `CoroutineDispatcher` (don't hardcode `Dispatchers.IO`)
-  so it can be tested.
-- **Hilt:** the DB and shared DAOs are provided from `core/database`; each feature's `data` provides
-  its repositories and binds its domain interfaces with `@Binds`. ViewModels with `@HiltViewModel` +
-  `@Inject`. A feature's Hilt module lives inside that feature.
-- **Versioned Room migrations.** **Never** `fallbackToDestructiveMigration` in real code.
-- **Security:** the SQLCipher passphrase is generated and stored in the **Keystore** /
-  EncryptedSharedPreferences; never hardcoded or in plain text. Don't log sensitive data.
-- **Charts with Compose Canvas**, no charting libraries (a deliberate decision: lightweight APK).
-- **Immutability:** domain models and UI state as immutable `data class`es; collections as
-  read-only `List`s. Avoid shared mutable state.
-
----
-
-## Design system (mandatory for any UI)
-
-The full visual contract lives in **[DESIGN.md](DESIGN.md)**; read it before building or changing
-any screen or component. Non-negotiable rules:
-
-- **Tokens only.** In a `@Composable`, **never** hardcode `Color(0x…)`, a magic `.dp`, a raw
-  `.sp`/`fontSize` or `FontFamily.Default`. Always consume `MaterialTheme.colorScheme.*`,
-  `MaterialTheme.financeColors.*`, `MaterialTheme.typography.*`, `MaterialTheme.spacing.*`,
-  `MaterialTheme.shapes.*` (defined under `ui/theme/`).
-- **Income/expense semantics:** use `MaterialTheme.financeColors` (income = green, expense = coral),
-  never `colorScheme.error` or a raw green/red. Pair color with a sign/icon (don't rely on color
-  alone).
-- **Shared components:** reuse (or add) "dumb" components in `ui/components/` instead of re-creating
-  visual patterns per screen. Each MVI screen renders explicit `loading / empty / content / error`
-  via shared state scaffolds.
-- **Light & dark:** every screen/component works in both themes, with `@Preview` for each.
-- **No drift:** `DESIGN.md` and the `ui/theme/` tokens are kept in sync in the same commit. The
-  runtime source of truth is the Kotlin theme.
-
----
-
-## Workflow to implement a feature / fix / enhancement (Vertical Slice)
-
-**Every change is a vertical slice**: pick the **feature** first, then build only the classes that
-feature needs, top-down through its own layers — never "all the domain of the app, then all the data".
-
-1. **Locate the feature, not the layer.** New capability → new `feature/<name>/`. Change to an
-   existing one → its folder. Only genuinely shared pieces touch `core/`.
-2. **Model the slice's domain first:** model + use case + repository interface in pure Kotlin under
-   `feature/<name>/domain`, each with its unit test. Only what *this* feature needs.
-3. **Implement the slice's `data`:** `@Entity` + DAO (contributed to `core` DB) + mapper + repository
-   implementation + the feature's Hilt module.
-4. **Connect the slice's UI:** define/extend `UiState` and intents; the ViewModel orchestrates the use
-   cases and exposes `StateFlow`; the Composable consumes state and emits intents.
-5. **Tests:** unit tests for the new logic (use case and/or ViewModel). Screenshot test if there's
-   relevant visual UI (e.g. the chart).
-6. **Verify:** `./gradlew formatAndAnalyze` and `./gradlew test` green.
-7. **Document & version:** add a `CHANGELOG.md` entry under `[Unreleased]` with the type
-   (`Added` / `Fixed` / `Changed` / `Enhancement` / `Security`). When the **slice** is done, cut a
-   version per the **Versioning** section.
-
-**Commit granularity — group by functional unit, not by file.** "Short/simple" does **not** mean one
-commit per class. Group the classes **needed to deliver something functional** toward the objective —
-typically by layer (`domain` / `data` / `ui`) or by sub-objective. Each commit must **compile and pass
-`codeQuality` + tests**. If a feature involves many classes (say ~15), analyze it and split into ~2
-coherent commits, not 15. One feature/fix at a time; don't touch unrelated code along the way.
-
----
-
-## Versioning
-
-The project follows [Semantic Versioning](https://semver.org/) `MAJOR.MINOR.PATCH`. The app is
-**not released yet**, so it stays in the **`0.y.z`** range until the first public release, which
-becomes `1.0.0`. A version identifies a **cut/milestone**, never a single commit.
-
-**When to bump (matched to the phased plan):**
-- **PATCH** (`0.1.1`, `0.1.2`, …) — each **self-contained step** within a phase (e.g. "add the
-  `Transaction` entity", "add the `GetBalance` use case"). Bump when the step works on its own.
-- **MINOR** (`0.2.0`) — when a **phase / user-visible milestone** is completed.
-- **MAJOR** (`1.0.0`) — the **first public release**.
-
-**`versionName` vs `versionCode`** (in `app/build.gradle.kts`):
-- `versionName` is the human SemVer string above.
-- `versionCode` is a monotonically increasing integer. **Increment it by 1 on every `versionName`
-  bump** (keeps it future-proof for distribution).
-
-**Release loop (do this for every bump, so `[Unreleased]` never piles up):**
-1. While working, add entries under `## [Unreleased]` in `CHANGELOG.md` (grouped by `Added` /
-   `Fixed` / `Changed` / `Enhancement` / `Security`).
-2. To cut the version: rename `[Unreleased]` to `## [x.y.z] - YYYY-MM-DD` and add a fresh empty
-   `## [Unreleased]` above it.
-3. Bump `versionName` (and `versionCode`) in `app/build.gradle.kts`.
-4. Tag the commit: `git tag vX.Y.Z`.
-
-Keep `[Unreleased]` small: promote it to a numbered version as soon as a step/phase is done, rather
-than accumulating a large backlog of unreleased changes.
-
----
-
-## Code conventions
-
-- ktlint `android_studio` style, **`max_line_length = 120`**, **4-space** indentation,
-  `end_of_line = lf` (see `.editorconfig`).
-- **Wildcard imports** (`import x.*`) and **trailing commas** are **forbidden**. ktlint enforces this
-  in the build, not just the editor.
-- `@Composable`/`@Preview` functions in **PascalCase** (exception already configured). All other
-  functions in camelCase; classes in PascalCase.
-- Descriptive, intention-revealing names; no cryptic abbreviations.
-- Comment only the **non-obvious** (the why), not the obvious. **Default to no comment**: don't add
-  KDoc/comments that just restate what the class/function name already says (e.g. "Provides the app
-  database" on a Hilt module). Comment **only** when it adds real value: a non-obvious *why*, a design
-  decision, a warning, or something counterintuitive (e.g. "no dispatcher because Room already threads").
-- Dependencies **always** in the Version Catalog (`gradle/libs.versions.toml`), referenced with
-  `libs.*`. Never inline versions in `build.gradle.kts`.
-
----
-
-## Testing
-
-### Unit tests (mandatory for new logic)
-- **Use cases and ViewModels** with **MockK** + **Turbine** (for `Flow`/`StateFlow`) +
-  `kotlinx-coroutines-test` (use an injected `TestDispatcher`).
-- The **domain is tested without an emulator** (pure Kotlin, faked repositories that honor the contract).
-- **Arrange–Act–Assert** pattern; one behavior per test; names that describe the case.
-- All new business or ViewModel logic **must** be accompanied by its test.
-
-### Screenshot testing
-- Key visual components (especially the **Canvas charts**) are covered with **Roborazzi**.
-- Workflow: generate the baseline (`recordRoborazziDebug`) and verify on every change
-  (`verifyRoborazziDebug`). Baseline images are versioned; any visual diff must be intentional and
-  reviewed.
-- Use deterministic data and pin dimensions/theme so the render is reproducible.
-
-### Pre-close verification
-```bash
-./gradlew formatAndAnalyze   # ktlintFormat → ktlintCheck + detekt + lint
-./gradlew test               # JVM unit tests
-```
-
----
+- Profile: `hb-stack-mobile-kotlin`
+- Variant: `android`
+- **Profile exceptions** (this file prevails):
+  - **MVI naming:** `XxxIntent` + `onIntent(intent)` instead of `XxxAction` + `onAction(action)`. Same
+    contract (one sealed type, one entry point); `Intent` is the vocabulary the project's MVI screens use.
+  - **Hilt module in the feature's `data/` package, no `di/`:** the module only binds that feature's data
+    implementations to its domain interfaces, so it sits next to what it binds.
+  - **Nav keys together in `navigation/`**, next to `FinFlowNavHost`, instead of a `XxxNavKey` /
+    `XxxNavigation` pair per feature: with one Gradle module and one NavHost, the whole graph reads in one
+    place. Split them per feature if the app is ever modularized.
+  - **`core/ui/` instead of `core/designsystem/`:** it holds more than the design system (theme, shared
+    components and UI formatting), and `DESIGN.md` refers to these paths.
+  - **No trailing commas:** the project's ktlint style forbids them (`.editorconfig`) and the build fails
+    on them; the profile's examples use them.
+- Kotlin · Jetpack Compose + Material 3 · Hilt · Navigation 3 · Coroutines + Flow · Room (KSP) over
+  **SQLCipher** · **Tink** + Android Keystore · DataStore · `androidx.biometric` · **Glance** (widget) ·
+  **WorkManager** (reminders) · kotlinx.serialization (nav keys).
+- Quality: ktlint, detekt, Android Lint, Kover, Roborazzi, Robolectric; SonarCloud and a Gradle Build
+  Scan in CI.
+- `compileSdk 37` · `targetSdk 36` · `minSdk 26` · bytecode Java 11 · Gradle daemon on JDK 21
+  (`gradle/gradle-daemon-jvm.properties`, auto-provisioned if missing). Package
+  `com.hacybeyker.finflow`. Versions live in `gradle/libs.versions.toml`.
 
 ## Commands
 
-| Action                       | Command                          |
-|------------------------------|----------------------------------|
-| Format                       | `./gradlew ktlintFormat`         |
-| Check style                  | `./gradlew ktlintCheck`          |
-| Static analysis              | `./gradlew detekt`               |
-| Android Lint                 | `./gradlew lint`                 |
-| Lint + ktlint + detekt       | `./gradlew codeQuality`          |
-| Format + verify everything   | `./gradlew formatAndAnalyze`     |
-| Unit tests (JVM)             | `./gradlew test`                 |
-| Instrumented tests           | `./gradlew connectedAndroidTest` |
-| Build (debug)                | `./gradlew assembleDebug`        |
+| For | Command |
+| --- | --- |
+| Build (debug) | `./gradlew assembleDebug` |
+| Install on device | `./gradlew installDebug` |
+| Release build (R8) | `./gradlew assembleRelease` |
+| Format | `./gradlew ktlintFormat` |
+| Lint + ktlint + detekt | `./gradlew codeQuality` |
+| Format + verify everything | `./gradlew formatAndAnalyze` |
+| Unit + Robolectric UI-flow tests | `./gradlew testDebugUnitTest` |
+| Coverage gate (≥ 95 %) | `./gradlew koverVerifyDebug` |
+| Screenshot gate | `./gradlew verifyRoborazziDebug` |
+| Re-record goldens (intentional visual change) | `./gradlew recordRoborazziDebug` |
+| Instrumented tests | `./gradlew connectedAndroidTest` |
 
-> On Windows: `gradlew.bat`. Config: `compileSdk 37`, `targetSdk 36`, `minSdk 26`, **JDK 11**.
+## DoD
 
----
+Before calling a task done, in this order (the same gates as `.github/workflows/ci.yml`):
 
-## Do's and don'ts
+1. `./gradlew formatAndAnalyze`
+2. `./gradlew testDebugUnitTest koverVerifyDebug verifyRoborazziDebug`
 
-**Do:**
-- Group code **by feature** (`feature/<name>/{domain,data,ui}`); keep only truly shared pieces in
-  `core/`. Respect the per-slice `ui → domain ← data` dependency rule.
-- Apply SOLID: single responsibility, small interfaces, dependencies toward abstractions.
-- A single immutable `UiState` per screen with explicit states.
-- Build UI from design tokens (`MaterialTheme.*`) and shared `ui/components/`; support light & dark.
-- Accompany new logic with unit tests and, if there's visual UI, a screenshot test.
-- Centralize dependencies in the Version Catalog and justify each addition.
-- Keep `formatAndAnalyze` and the tests green, and update the `CHANGELOG.md`.
+A Roborazzi diff is only acceptable if the visual change is intentional: re-record with
+`recordRoborazziDebug` and review the new golden. SonarCloud's Quality Gate only runs in CI.
 
-**Don't:**
-- Don't put business logic or validation in Composables.
-- Don't leak Room `@Entity` types or `data` details into `ui`.
-- Don't use `fallbackToDestructiveMigration`, wildcard imports or trailing commas.
-- Don't hardcode secrets, keys or passphrases; don't log financial data.
-- Don't add heavy charting libraries (charts are drawn with Canvas).
-- Don't hardcode colors, sizes or fonts in Composables, or use `colorScheme.error` for expenses.
-- Don't let `DESIGN.md` and the `core/ui/theme/` tokens drift apart.
-- Don't mix several features/fixes in a single change, and **don't dump many files into one commit** —
-  keep commits short and coherent.
-- Don't import another feature's internals from a feature; collaborate via `core/` or domain contracts.
-- Don't promote code to `core/` speculatively (YAGNI) — wait until ≥2 features need it.
+## Architecture
+
+**Vertical Slice Architecture** in a single Gradle module (a deliberate, revisitable choice), with the
+Clean Architecture dependency rule inside every slice. Diagram in the README.
+
+- `feature/<name>/{domain,data,ui}` for `transactions`, `charts`, `security`, `settings`, `widget` and
+  `reminders`. A feature is a business capability, never a single widget.
+- **Dependency rule `ui → domain ← data`:** `domain` is pure Kotlin (models, repository interfaces, use
+  cases; `@Inject` is the only annotation allowed). `data` implements the domain interfaces and owns
+  entities and mappers; an `@Entity` never leaves `data`. ViewModels talk to use cases, never to
+  repositories.
+- A feature never imports another feature's internals; they collaborate through `core/`. Promote to
+  `core/` only when ≥ 2 features need it.
+- `core/`: `database/` (`FinFlowDatabase` aggregates every feature's entities and DAOs; migrations in
+  `DatabaseMigrations`; `DatabaseKey`), `domain/` (types and contracts shared by ≥ 2 features, such as
+  `Money`), `di/` (`@IoDispatcher` and shared bindings), `ui/theme`, `ui/components` and `ui/format`.
+- **MVI per screen:** a single immutable `StateFlow<XxxUiState>`; interactions arrive as a
+  `sealed interface XxxIntent` through `onIntent(intent)`, not through loose public ViewModel methods.
+  Explicit `loading / empty / content / error` states rendered with shared scaffolds. The ViewModel sends
+  no one-off events: transient messages are state the UI acknowledges with an intent.
+  - **Known gap (planned refactor):** only `AddTransactionViewModel` follows this contract today. Home,
+    Categories, Settings and Security still expose loose methods (Settings also a second `StateFlow`), and
+    the shared scaffolds don't exist yet. New screens follow the contract; when you touch an existing one,
+    keep it consistent and propose its migration instead of mixing both styles.
+- **Room is the SSOT:** DAOs return `Flow` and the UI reacts to it; no manual refresh or caches parallel
+  to the database. Writes are `suspend`.
+- Dispatchers are injected with `@IoDispatcher`; never a hardcoded `Dispatchers.IO`.
+- Room schemas are exported to `app/schemas/`; every database version bump ships its migration in
+  `DatabaseMigrations`. Never `fallbackToDestructiveMigration`.
+
+## Project rules
+
+- **Design system:** read [DESIGN.md](DESIGN.md) before building or changing UI.
+  - Tokens only: `MaterialTheme.colorScheme`, `.financeColors`, `.typography`, `.spacing`, `.shapes`.
+    Never `Color(0x…)`, a magic `.dp`, a raw `.sp` or `FontFamily.Default` in a composable.
+  - Income and expense use `MaterialTheme.financeColors` (income green, expense coral), never
+    `colorScheme.error` or a raw green/red, and always pair color with a sign or icon.
+  - Reuse or add "dumb" components in `core/ui/components/` instead of recreating patterns per screen.
+  - Every screen and component works in light and dark, with a `@Preview` for each.
+  - `DESIGN.md` and the `core/ui/theme/` tokens change in the same commit; the Kotlin theme is the
+    runtime source of truth.
+- **No business logic or validation in composables:** calculations live in use cases, form validation in
+  the ViewModel.
+- **Charts are drawn with Compose Canvas, no charting libraries:** two charts don't justify a dependency,
+  and custom drawing keeps the APK lean and the visuals on-brand.
+- **Tests:** all new logic (use cases, mappers, repositories, ViewModels) comes with unit tests.
+  - Hand-rolled fakes that honor the domain contract, not mocks. Turbine for flows, `runTest` with an
+    injected test dispatcher. One behavior per test, with a name that describes the case.
+  - Kover gate: ≥ 95 % line coverage over domain, data and ViewModels (generated code and framework
+    adapters are excluded by design).
+  - UI flows run on the JVM with Robolectric, an in-memory Room without SQLCipher and
+    `HiltTestApplication`; chosen over an emulator for speed, and Roborazzi reuses the same setup.
+  - Roborazzi goldens are versioned in `app/src/test/screenshots/`, with deterministic data and pinned
+    size and theme.
+- **Dependencies:** only in `gradle/libs.versions.toml` with `version.ref`, stable versions only, and
+  each addition justified. No version literals in `build.gradle.kts`.
+- **Style** (ktlint enforces it in the build, see `.editorconfig`): `android_studio`, 120 columns,
+  4 spaces, LF. **No wildcard imports and no trailing commas.** `@Composable` / `@Preview` functions in
+  PascalCase.
+- **Comments:** none by default. Only the non-obvious *why* (a decision, a warning, something
+  counterintuitive); no KDoc that restates the name.
+
+## Git
+
+- Short branches from `main`, named after the change type: `feat/…`, `fix/…`, `chore/…`.
+- Everything reaches `main` through a PR merged with squash; nothing goes directly to `main`, which is
+  protected (PR plus green CI). The PR title follows Conventional Commits, since it becomes the commit.
+- Commits: Conventional Commits, in English, no emoji, no AI attribution (`Co-Authored-By`, "Generated
+  with") in commits, PRs, tags or releases.
+- One feature or fix per PR, without touching unrelated code. Commits group what delivers something
+  functional (by layer or sub-goal), not one file per commit; each one compiles and passes `codeQuality`
+  and the tests.
+- The AI doesn't commit, push or tag unless explicitly asked: it leaves the changes and provides the
+  message. Ask for approval before `git push`, creating a tag or release, or publishing.
+
+## Versioning and release
+
+- SemVer. PATCH: a fix or a self-contained step. MINOR: a user-visible feature or milestone. MAJOR: a
+  breaking change for users.
+- The version lives in `gradle/libs.versions.toml` (`appVersion`, read by `versionName` and by Sonar's
+  `projectVersion`) plus `versionCode` in `app/build.gradle.kts`, which goes up by 1 on every release.
+- `CHANGELOG.md` in English with [Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.1.0/): every
+  change goes into `[Unreleased]`, under the standard types in this order: Added, Changed, Deprecated,
+  Removed, Fixed, Security. Comparison links at the bottom.
+- Cutting a version (through its own PR, `chore(release): x.y.z`): rename `[Unreleased]` to
+  `[x.y.z] - YYYY-MM-DD`, add an empty `[Unreleased]`, update the links, bump `appVersion` and
+  `versionCode`.
+- After merging, every version gets an annotated tag `vX.Y.Z` on its squash commit in `main` and a
+  GitHub Release with its CHANGELOG section as notes.
+- Tags and releases are created by the person, or by an agent with their approval. CI doesn't run on
+  tags, and no workflow creates tags or publishes.
+- Not published to any store yet.
+
+## Security
+
+- No backend and no `INTERNET` permission: financial data never leaves the device. Adding network access
+  is a product decision, not an implementation detail.
+- The SQLCipher passphrase is random (256 bits), sealed with Tink AES-256-GCM, with the key in the
+  Android Keystore (`core/database/DatabaseKey`). Never hardcoded, logged or stored in plaintext.
+  Critical writes use `commit()`, not `apply()`, so process death can't orphan the database.
+- The database files and `finflow_secure_prefs.xml` are excluded from Auto Backup and device transfer
+  (`backup_rules.xml` and `data_extraction_rules.xml`): a restored copy can't be decrypted. Any new file
+  with sensitive data is excluded in both.
+- Biometrics gate entry to the app; they don't derive the database key, so re-enrolling a fingerprint
+  doesn't lose data.
+- The widget shows amounts masked by default.
+- Never log financial data (amounts, descriptions, categories) or secrets.
+- Release builds run R8; keep rules in `app/src/main/keepRules/`. GitHub Actions are pinned to a commit
+  SHA.

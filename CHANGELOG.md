@@ -5,8 +5,23 @@ All notable changes to **FinFlow** are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
-> **Change types:** `Added` (feature), `Fixed` (fix), `Changed` / `Enhancement` (improvement),
-> `Deprecated`, `Removed`, `Security`.
+> **Change types**, in this order: `Added` (new features), `Changed` (changes to existing
+> functionality), `Deprecated`, `Removed`, `Fixed` (bug fixes), `Security`.
+
+## [Unreleased]
+
+### Changed
+- **AI agent guide moved to the standard `AGENTS.md` structure** (Stack, Commands, DoD, Architecture,
+  Project rules, Git, Versioning and release, Security): it declares the `hb-stack-mobile-kotlin`
+  profile (variant `android`) with FinFlow's exceptions and their reasons, a DoD that matches CI, and
+  stays self-contained, so the global `hb-*` skills from
+  [Hacybeyker/agent-skills](https://github.com/Hacybeyker/agent-skills) are optional. `CLAUDE.md`
+  imports it for Claude Code, and `.gitignore` now ignores `reports/` and `.claude/settings.local.json`.
+- **README:** contribution workflow (short branches, squash-merged PRs to a protected `main`), annotated
+  tags with GitHub Releases, where the project rules live, and the real JDK (21 for the Gradle daemon;
+  bytecode still targets Java 11).
+- **CHANGELOG aligned with Keep a Changelog 1.1.0:** the non-standard `Enhancement` type became
+  `Changed`, and every version has a comparison link.
 
 ## [1.0.0] - 2026-07-21
 
@@ -58,7 +73,7 @@ First public release. 🎉
   `core/domain` (settings, widget, root and reminders all consume them). Shipped in `308682e`,
   before the 0.11.0 release commit, but undocumented until now.
 
-### Enhancement
+### Changed
 - **Cross-feature list/empty-state polish (Slice 7, closing sub-step):** transaction rows in Home
   and category rows in the categories screen animate in/out/reposition with `Modifier.animateItem()`
   (undo-restored or newly added rows slide into place instead of popping), and the switch between
@@ -380,3 +395,20 @@ First public release. 🎉
   `.editorconfig` and code quality tools (ktlint, detekt, Android Lint).
 - Configuration of `compileSdk 37`, `targetSdk 36`, `minSdk 26`.
 - Base structure of the Android project (Kotlin + Jetpack Compose, Material 3).
+
+[Unreleased]: https://github.com/Hacybeyker/FinFlow/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/Hacybeyker/FinFlow/compare/v0.12.0...v1.0.0
+[0.12.0]: https://github.com/Hacybeyker/FinFlow/compare/v0.11.0...v0.12.0
+[0.11.0]: https://github.com/Hacybeyker/FinFlow/compare/v0.10.1...v0.11.0
+[0.10.1]: https://github.com/Hacybeyker/FinFlow/compare/v0.10.0...v0.10.1
+[0.10.0]: https://github.com/Hacybeyker/FinFlow/compare/v0.9.0...v0.10.0
+[0.9.0]: https://github.com/Hacybeyker/FinFlow/compare/v0.8.0...v0.9.0
+[0.8.0]: https://github.com/Hacybeyker/FinFlow/compare/v0.7.0...v0.8.0
+[0.7.0]: https://github.com/Hacybeyker/FinFlow/compare/v0.6.0...v0.7.0
+[0.6.0]: https://github.com/Hacybeyker/FinFlow/compare/v0.5.0...v0.6.0
+[0.5.0]: https://github.com/Hacybeyker/FinFlow/compare/v0.4.0...v0.5.0
+[0.4.0]: https://github.com/Hacybeyker/FinFlow/compare/v0.3.0...v0.4.0
+[0.3.0]: https://github.com/Hacybeyker/FinFlow/compare/v0.2.0...v0.3.0
+[0.2.0]: https://github.com/Hacybeyker/FinFlow/compare/v0.1.0...v0.2.0
+[0.1.0]: https://github.com/Hacybeyker/FinFlow/compare/v0.0.1...v0.1.0
+[0.0.1]: https://github.com/Hacybeyker/FinFlow/releases/tag/v0.0.1

@@ -78,7 +78,7 @@ FinFlow tracks **income and expenses while working 100% offline**. You log trans
 
 ## 🧪 Quality gates
 
-Every push to `main` runs the full pipeline — and **fails** if any gate breaks:
+Every pull request to `main`, and every push to it, runs the full pipeline — and **fails** if any gate breaks:
 
 1. **Static analysis** — ktlint + detekt + Android Lint (`codeQuality`).
 2. **Tests** — unit + Robolectric UI flows (93 tests, one JVM run shared by all gates).
@@ -109,7 +109,7 @@ The goldens guarding the charts (light/dark, versioned in `app/src/test/screensh
 
 ## ⚡ Commands
 
-> **Requirements:** JDK 17 (build; bytecode targets Java 11) · Android Studio with AGP `9.3` · `compileSdk 37` · `targetSdk 36` · `minSdk 26`. All versions live in the Version Catalog (`gradle/libs.versions.toml`).
+> **Requirements:** JDK 21 for the Gradle daemon (declared in `gradle/gradle-daemon-jvm.properties`; Gradle auto-provisions it if missing; bytecode targets Java 11) · Android Studio with AGP `9.3` · `compileSdk 37` · `targetSdk 36` · `minSdk 26`. All versions live in the Version Catalog (`gradle/libs.versions.toml`).
 
 | Action | Command |
 |--------|---------|
@@ -145,14 +145,24 @@ FinFlow/
 ├── lint.xml · .editorconfig    # Lint rules and code style
 ├── CHANGELOG.md                # Version history
 ├── DESIGN.md                   # Design system (colors, typography, spacing, components)
-└── AGENTS.md                   # Standards and guide for AI assistants
+├── AGENTS.md                   # Project rules for people and AI agents
+└── CLAUDE.md                   # Imports AGENTS.md for Claude Code
 ```
 
 ## 🤝 Contributing · 🤖 For AI assistants
 
-The **architecture, SOLID standards, MVI patterns and implementation rules** live in **[AGENTS.md](AGENTS.md)**, and the **visual design system** (colors, typography, spacing, components, light/dark) in **[DESIGN.md](DESIGN.md)** — read both before touching any code (human or AI).
+The **project rules** (architecture, MVI contract, DoD, git, release and security) live in **[AGENTS.md](AGENTS.md)**, and the **visual design system** (colors, typography, spacing, components, light/dark) in **[DESIGN.md](DESIGN.md)** — read both before touching any code (human or AI). The general Android/Kotlin practices come from the `hb-stack-mobile-kotlin` profile in **[Hacybeyker/agent-skills](https://github.com/Hacybeyker/agent-skills)**: its skills are optional but recommended, and `AGENTS.md` works without them. Claude Code reads `AGENTS.md` through `CLAUDE.md`.
 
-In short: ktlint `android_studio` style, `max_line_length = 120`, 4-space indentation, **no wildcard imports or trailing commas**, dependencies always via the Version Catalog, and UI built only from design tokens (`MaterialTheme.*`). Keep `formatAndAnalyze` and the tests green, and update the `CHANGELOG.md`.
+**Workflow:**
+
+1. Branch from `main` with a short branch named after the change type: `feat/…`, `fix/…`, `chore/…`.
+2. Run the DoD before pushing: `./gradlew formatAndAnalyze`, then `./gradlew testDebugUnitTest koverVerifyDebug verifyRoborazziDebug`.
+3. Add the change to `[Unreleased]` in [`CHANGELOG.md`](CHANGELOG.md) ([Keep a Changelog](https://keepachangelog.com/en/1.1.0/)).
+4. Open a PR to `main`. `main` is protected: it only takes squash-merged PRs with green CI, and the PR title (Conventional Commits, in English) becomes the commit.
+
+**Releases:** every version gets an annotated tag `vX.Y.Z` and a [GitHub Release](https://github.com/Hacybeyker/FinFlow/releases) whose notes are its `CHANGELOG.md` section. The app isn't published to any store yet.
+
+In short: ktlint `android_studio` style, `max_line_length = 120`, 4-space indentation, **no wildcard imports or trailing commas**, dependencies always via the Version Catalog, and UI built only from design tokens (`MaterialTheme.*`).
 
 ## 📄 License
 
