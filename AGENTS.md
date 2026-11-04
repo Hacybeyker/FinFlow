@@ -168,4 +168,5 @@ Clean Architecture dependency rule inside every slice. Diagram in the README.
 - The widget shows amounts masked by default.
 - Never log financial data (amounts, descriptions, categories) or secrets.
 - Release builds run R8; keep rules in `app/src/main/keepRules/`. GitHub Actions are pinned to a commit
-  SHA.
+  SHA, and Dependabot keeps them and the Gradle dependencies up to date with a 7-day cooldown. The Gradle
+  wrapper distribution is verified with `distributionSha256Sum`.

@@ -22,6 +22,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   bytecode still targets Java 11).
 - **CHANGELOG aligned with Keep a Changelog 1.1.0:** the non-standard `Enhancement` type became
   `Changed`, and every version has a comparison link.
+- **CI:** the job runs on `ubuntu-26.04` instead of the moving `ubuntu-latest` label and on JDK 21, the
+  same JDK the Gradle daemon declares, so Gradle no longer provisions a second one. Actions are pinned
+  to the SHA of an exact release, and the Build Scan is published only while the repository is public.
+
+### Security
+- The Gradle wrapper is validated in CI and its distribution is verified with `distributionSha256Sum`.
+- The workflow token is read-only (`permissions: contents: read`).
+- Dependabot updates Gradle dependencies and the pinned actions weekly, waiting 7 days before
+  proposing a new release.
+- `.gitattributes` keeps `gradlew` with LF and `gradlew.bat` with CRLF on every OS.
 
 ## [1.0.0] - 2026-07-21
 
