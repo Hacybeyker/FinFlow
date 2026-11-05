@@ -25,6 +25,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - **CI:** the job runs on `ubuntu-26.04` instead of the moving `ubuntu-latest` label and on JDK 21, the
   same JDK the Gradle daemon declares, so Gradle no longer provisions a second one. Actions are pinned
   to the SHA of an exact release, and the Build Scan is published only while the repository is public.
+- **Unit tests:** the test JVM gets the `--add-opens` flags that Robolectric documents for JDK 17 and
+  later. Robolectric 4.17 needs `java.base/jdk.internal.access` open; without it, six Robolectric tests
+  fail with an `IllegalAccessException`.
 
 ### Fixed
 - **Widget refresher no longer swallows coroutine cancellation:** a failed widget re-render is still
