@@ -109,7 +109,7 @@ The goldens guarding the charts (light/dark, versioned in `app/src/test/screensh
 
 ## ⚡ Commands
 
-> **Requirements:** JDK 21 for the Gradle daemon (declared in `gradle/gradle-daemon-jvm.properties`; Gradle auto-provisions it if missing; bytecode targets Java 11) · Android Studio with AGP `9.3` · `compileSdk 37` · `targetSdk 36` · `minSdk 26`. All versions live in the Version Catalog (`gradle/libs.versions.toml`).
+> **Requirements:** JDK 21 for the Gradle daemon (declared in `gradle/gradle-daemon-jvm.properties`; Gradle auto-provisions it if missing; bytecode targets Java 11) · Android Studio with AGP `9.5` · `compileSdk 37` · `targetSdk 36` · `minSdk 26`. All versions live in the Version Catalog (`gradle/libs.versions.toml`).
 
 | Action | Command |
 |--------|---------|

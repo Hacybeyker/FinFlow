@@ -28,6 +28,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - **Unit tests:** the test JVM gets the `--add-opens` flags that Robolectric documents for JDK 17 and
   later. Robolectric 4.17 needs `java.base/jdk.internal.access` open; without it, six Robolectric tests
   fail with an `IllegalAccessException`.
+- **Dependencies (Dependabot):** Gradle 9.6.1 → **9.8.2**, AGP 9.3.0 → **9.5.0**, Kotlin 2.4.10 →
+  **2.4.21** (KSP 2.3.12), Compose BOM 2026.06.01 → 2026.09.00, Room 2.8.5, DataStore 1.3.0,
+  WorkManager 2.12.0, SQLCipher 4.20.0, Tink 1.24.0, kotlinx-serialization 1.12.0, Robolectric 4.17,
+  Roborazzi 1.77.0, Kover 0.9.11, the SonarQube plugin 7.5.0 and detekt 2.0.0-alpha.6, plus patch
+  updates of core-ktx and the error-prone annotations. `gradlew.bat` is stored with LF in the
+  repository, as `.gitattributes` requires, and still checks out with CRLF.
 
 ### Fixed
 - **Widget refresher no longer swallows coroutine cancellation:** a failed widget re-render is still
