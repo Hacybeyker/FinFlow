@@ -26,6 +26,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   same JDK the Gradle daemon declares, so Gradle no longer provisions a second one. Actions are pinned
   to the SHA of an exact release, and the Build Scan is published only while the repository is public.
 
+### Fixed
+- **Widget refresher no longer swallows coroutine cancellation:** a failed widget re-render is still
+  ignored so the collector keeps running, but a `CancellationException` from `updateAll` now propagates.
+
 ### Security
 - The Gradle wrapper is validated in CI and its distribution is verified with `distributionSha256Sum`.
 - The workflow token is read-only (`permissions: contents: read`).

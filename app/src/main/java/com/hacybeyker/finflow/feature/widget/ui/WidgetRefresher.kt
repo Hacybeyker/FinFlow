@@ -8,6 +8,7 @@ import dagger.Lazy
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
@@ -39,7 +40,13 @@ class WidgetRefresher @Inject constructor(
                 // collector runs for the entire process lifetime with no lifecycle to bound it.
                 // WidgetRefreshWorker's daily run is the eventual-consistency fallback if it stops.
                 .catch { }
-                .collect { runCatching { FinFlowWidget().updateAll(context) } }
+                .collect {
+                    // One failed re-render must not stop the collector, but cancellation must propagate:
+                    // `updateAll` suspends, and swallowing its CancellationException would keep a
+                    // cancelled coroutine running.
+                    runCatching { FinFlowWidget().updateAll(context) }
+                        .onFailure { if (it is CancellationException) throw it }
+                }
         }
     }
 }
